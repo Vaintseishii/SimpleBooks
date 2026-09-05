@@ -3,7 +3,7 @@
 ## Summary
 SimpleBooks is a lightweight accounting app designed for small business owners and freelancers. It lets users issue invoices to clients, record business expenses, track who owes them money, and view a simple Profit & Loss summary.
 
-## Members
+## JSX Members
 - Joseph Brian Azarraga
 - Sherwin Sid Sañol
 - Xanth Reign Palmes
