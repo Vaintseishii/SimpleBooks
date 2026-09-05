@@ -1,29 +1,137 @@
-# Create T3 App
+# SimpleBooks
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+## Summary
+SimpleBooks is a lightweight accounting app designed for small business owners and freelancers. It lets users issue invoices to clients, record business expenses, track who owes them money, and view a simple Profit & Loss summary.
 
-## What's next? How do I make an app with this?
+## Members
+- Joseph Brian Azarraga
+- Sherwin Sid Sañol
+- Xanth Reign Palmes
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## T3 Stack 
+Made with T3 stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Core Feature Specifications
 
-## Learn More
+### Feature 1: Client Invoicing & Sales (Money In)
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+#### Create & Send Invoices
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+Build professional invoices for clients with:
 
-## How do I deploy this?
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- Line items
+- Quantities
+- Unit prices
+- Due dates
+
+
+#### Invoice Status Tracker
+
+
+Track invoice statuses:
+
+
+- `DRAFT`
+- `SENT`
+- `PAID`
+- `OVERDUE`
+
+
+#### Accounts Receivable at a Glance
+
+
+Instantly view the total amount of unpaid invoices to see how much money clients currently owe the business.
+
+
+---
+
+
+### Feature 2: Expense & Bill Logging (Money Out)
+
+
+#### Log Outgoing Expenses
+
+
+Record business expenses such as:
+
+
+- Rent
+- Software
+- Office Supplies
+- Other business expenses
+
+
+Assign each expense to an appropriate expense category.
+
+
+#### Vendor Association
+
+
+Link expenses to specific vendors or suppliers for record-keeping.
+
+
+#### Payment Status
+
+
+Mark expenses as:
+
+
+- `UNPAID` — Bills that still need to be paid later
+- `PAID` — Expenses already paid out-of-pocket
+
+
+---
+
+
+### Feature 3: Simplified Financial Reports (Profit & Loss)
+
+
+#### Net Income Summary
+
+
+Calculate total revenue from paid invoices minus total expenses over a selected date range.
+
+
+**Formula:**
+
+
+> Net Income = Total Revenue - Total Expenses
+
+
+Supported date ranges may include:
+
+
+- `This Month`
+- `Year-to-Date`
+- Custom Date Range
+
+
+#### Category Breakdown
+
+
+View a pie chart or summary showing where most money is being spent.
+
+
+**Example:**
+
+
+| Expense Category | Percentage |
+|---|---:|
+| Rent | 40% |
+| Supplies | 25% |
+| Software | 15% |
+| Other | 20% |
+
+
+#### Outstanding Balances
+
+
+Summarize the business's outstanding balances:
+
+
+- **Pending Income** — Total money clients still owe
+- **Unpaid Bills** — Total expenses that still need to be paid
+
