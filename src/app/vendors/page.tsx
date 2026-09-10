@@ -1,7 +1,7 @@
 export default function Vendors() {
     return (
-        <div>
-            <h1 className="font-bold">Vendors Page</h1>
+        <div className="p-4">
+            <h1 className="font-bold text-2xl">Nigga Vendors</h1>
         </div>
     )
 }
