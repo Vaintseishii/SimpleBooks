@@ -1,7 +1,7 @@
 import Link from "next/link";
-import About from "./about/page";
 
-export default function Home() {
+
+export default function Overview() {
   return (
     <div className="min-h-screen w-full bg-[#eef0f2] flex flex-col items-center">
       <h1 className="font-bold text-[#153243] text-4xl mt-4">SimpleBooks</h1>
