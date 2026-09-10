@@ -1,4 +1,10 @@
 import "~/styles/globals.css";
+import { Roboto } from "next/font/google"
+
+const roboto = Roboto({
+  subsets: ["latin"],
+})
+
 export const metadata = {
 
   title: "T3 App",
@@ -13,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={roboto.className}>{children}</body>
     </html>
   );
 }
