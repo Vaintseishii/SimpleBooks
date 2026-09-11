@@ -19,9 +19,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${roboto.className} flex`}>
-        <Sidebar />
-        <main className="flex-1">{children}</main>
+      <body className={`${roboto.className} flex flex-col`}>
+        <div className="flex items-start">
+          <Sidebar/>
+        </div>
+        
+        <main className="w-full flex-1">{children}</main>
       </body>
     </html>
   );
