@@ -12,8 +12,8 @@ export function NavLink({ href, children }: { href: string; children: React.Reac
         href={href}
         className={`text-2xl w-full text-center py-2 ${
             isActive
-            ? "bg-black rounded-full text-white"
-            : "text-black hover:bg-[#dee2e6] hover:rounded-full"
+            ? "bg-black rounded-full text-text"
+            : "hover:bg-border hover:rounded-full"
         }`}
         >
         {children}
