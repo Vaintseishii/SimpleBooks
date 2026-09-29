@@ -4,12 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isActive = pathname === href;
+    const pathname = usePathname();
+    const isActive = pathname === href;
 
-  return (
-    <Link href={href} className={`text-2xl w-50 text-center py-2 ${isActive ? "bg-black rounded-full text-white" : "text-black hover:bg-[#dee2e6] hover:rounded-full"}`}>
-      {children}
-    </Link>
-  );
+    return (
+        <Link
+        href={href}
+        className={`text-2xl w-full text-center py-2 ${
+            isActive
+            ? "bg-black rounded-full text-white"
+            : "text-black hover:bg-[#dee2e6] hover:rounded-full"
+        }`}
+        >
+        {children}
+        </Link>
+    );
 }
