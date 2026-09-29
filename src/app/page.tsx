@@ -1,15 +1,30 @@
 export default function Overview() {
     return (
-        <div className="p-4">
-            <div className="mt-4 flex h-[calc(100vh-12rem)] min-h-[400px] gap-4">
-                {/* Left half: parent div holding the 2 stacked boxes */}
+        <div className="flex h-screen flex-col p-4">
+        {/* Dashboard title - plain div, no rounding, no floating box look */}
+
+            <div className="flex flex-1 gap-4 overflow-hidden">
+            {/* Left half: parent div holding the 3 stacked boxes */}
                 <div className="flex w-1/2 flex-col gap-4">
-                    <div className="flex-1 rounded-3xl bg-white shadow-lg" />
-                    <div className="flex-1 rounded-3xl bg-white shadow-lg" />
+                    <div className="flex-1 pb-4">
+                        <h1 className="font-bold text-2xl">Dashboard</h1>
+                    </div>
+
+                    <div className="flex-1 rounded-3xl bg-white p-4 shadow-lg">
+                        <span className="font-medium">Needs Attention</span>
+                    </div>
+                    <div className="flex-1 rounded-3xl bg-white p-4 shadow-lg">
+                        <span className="font-medium">Invoices</span>
+                    </div>
+                    <div className="flex-1 rounded-3xl bg-white p-4 shadow-lg">
+                        <span className="font-medium">Expenses</span>
+                    </div>
                 </div>
 
                 {/* Right half: 1 big box */}
-                <div className="w-1/2 rounded-3xl bg-white shadow-lg" />
+                <div className="w-1/2 rounded-3xl bg-white p-4 shadow-lg">
+                    <span className="font-medium">Reports</span>
+                </div>
             </div>
         </div>
     );
