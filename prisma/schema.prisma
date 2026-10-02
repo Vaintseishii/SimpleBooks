@@ -11,14 +11,31 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
 
-    @@index([name])
+enum InvoiceStatus {
+    DRAFT
+    SENT
+    PAID
+    OVERDUE
+    VOID
 }
+
+enum ExpenseCategory {
+    SOFTWARE
+    TRAVEL
+    OFFICE
+    MARKETING
+    UTILITIES
+    PROFESSIONAL_SERVICES
+    OTHER
+}
+
+// ─────────────────────────────────────────────
+// Core business models
+// ─────────────────────────────────────────────
 
 model User {
     id            String    @id @default(cuid())
@@ -26,9 +43,124 @@ model User {
     email         String?   @unique
     emailVerified DateTime?
     image         String?
-    accounts      Account[]
-    sessions      Session[]
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
+
+    // Auth (NextAuth)
+    accounts Account[]
+    sessions Session[]
+
+    // Business data owned by this user
+    clients  Client[]
+    vendors  Vendor[]
+    invoices Invoice[]
+    expenses Expense[]
 }
+
+// A customer you bill
+model Client {
+    id        String   @id @default(cuid())
+    userId    String
+    name      String
+    email     String?
+    phone     String?
+    address   String?
+    notes     String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    invoices Invoice[]
+
+    @@index([userId])
+}
+
+// A supplier you pay
+model Vendor {
+    id        String   @id @default(cuid())
+    userId    String
+    name      String
+    email     String?
+    phone     String?
+    address   String?
+    notes     String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    expenses Expense[]
+
+    @@index([userId])
+}
+
+// Money coming in
+model Invoice {
+    id        String        @id @default(cuid())
+    userId    String
+    clientId  String
+    number    String // e.g. "INV-0001"
+    status    InvoiceStatus @default(DRAFT)
+    issueDate DateTime      @default(now())
+    dueDate   DateTime
+    paidAt    DateTime?
+    currency  String        @default("USD")
+    subtotal  Decimal       @db.Decimal(12, 2)
+    tax       Decimal       @default(0) @db.Decimal(12, 2)
+    total     Decimal       @db.Decimal(12, 2)
+    notes     String?
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
+
+    user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    client Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
+    items  InvoiceItem[]
+
+    @@unique([userId, number])
+    @@index([userId])
+    @@index([clientId])
+    @@index([status])
+}
+
+// Line items on an invoice
+model InvoiceItem {
+    id          String  @id @default(cuid())
+    invoiceId   String
+    description String
+    quantity    Decimal @default(1) @db.Decimal(10, 2)
+    unitPrice   Decimal @db.Decimal(12, 2)
+    amount      Decimal @db.Decimal(12, 2)
+
+    invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+    @@index([invoiceId])
+}
+
+// Money going out
+model Expense {
+    id          String          @id @default(cuid())
+    userId      String
+    vendorId    String?
+    description String
+    category    ExpenseCategory @default(OTHER)
+    amount      Decimal         @db.Decimal(12, 2)
+    currency    String          @default("USD")
+    date        DateTime        @default(now())
+    receiptUrl  String?
+    notes       String?
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+
+    user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    vendor Vendor? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+
+    @@index([userId])
+    @@index([vendorId])
+    @@index([date])
+}
+
+// ─────────────────────────────────────────────
+// Auth models (NextAuth) — keep if you use NextAuth
+// ─────────────────────────────────────────────
 
 model Account {
     id                String  @id @default(cuid())

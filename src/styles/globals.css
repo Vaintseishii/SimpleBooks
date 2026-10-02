@@ -1,2 +1,19 @@
 @import "tailwindcss";
 
+@theme {
+    --color-background: #0D0D10;
+    --color-foreground: #202022;
+    --color-primary: #141417;
+    --color-hover: #19191D;
+
+    --color-border:#242329;
+    --color-border-foreground: #2F2F32;
+
+    --color-text: #efeff7;
+}
+
+@layer base {
+    body {
+        @apply bg-background text-text;
+    }
+}
