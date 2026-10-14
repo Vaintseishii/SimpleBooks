@@ -1,22 +1,25 @@
 "use client";
 
-import Link from "next/link";
+import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 
-export function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+type NavLinkProps = { href: string; icon: React.ReactNode; children: React.ReactNode };
+
+export function NavLink({ href, icon, children }: NavLinkProps) {
     const pathname = usePathname();
-    const isActive = pathname === href;
+    const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
     return (
-        <Link
+        <NextLink
             href={href}
-            className={`rounded-full px-3 py-1 text-xs transition-colors ${
+            className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
                 isActive
-                ? "bg-hover text-text"
-                : "text-text/80 hover:text-text"
+                    ? "bg-brand-soft font-medium text-brand"
+                    : "text-text-muted hover:bg-brand-soft/60 hover:text-text"
             }`}
         >
+            {icon}
             {children}
-        </Link>
+        </NextLink>
     );
 }
