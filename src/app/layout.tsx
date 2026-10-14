@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-        <body className={`${roboto.className} flex flex-col bg-background`}>
+        <body className={`${roboto.className} flex flex-col`}>
             <Topbar />
             <main className="w-full flex-1">{children}</main>
         </body>

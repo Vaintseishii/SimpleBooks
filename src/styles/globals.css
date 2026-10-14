@@ -1,19 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-    --color-background: #0D0D10;
-    --color-foreground: #202022;
-    --color-primary: #141417;
-    --color-hover: #19191D;
-
-    --color-border:#242329;
-    --color-border-foreground: #2F2F32;
-
-    --color-text: #efeff7;
+    --color-page: #f5f5f2;        /* app background */
+    --color-sidebar: #eef0eb;
+    --color-surface: #ffffff;     /* cards */
+    --color-border: #e4e4df;
+    --color-text: #1f2420;
+    --color-text-muted: #6b706b;
+    --color-brand: #2f5a47;       /* buttons, hero card */
+    --color-brand-soft: #e5ece6;  /* active nav, Paid pill */
+    --color-danger: #b5503c;      /* Overdue */
+    --color-warning: #8a6a2b;     /* Unpaid */
 }
 
 @layer base {
     body {
-        @apply bg-background text-text;
+        @apply bg-page text-text;
     }
 }
