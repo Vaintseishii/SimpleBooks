@@ -9,14 +9,14 @@ export function NavLink({ href, children }: { href: string; children: React.Reac
 
     return (
         <Link
-        href={href}
-        className={`text-2xl w-full text-center py-2 ${
-            isActive
-            ? "bg-black rounded-full text-text"
-            : "hover:bg-border hover:rounded-full"
-        }`}
+            href={href}
+            className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                isActive
+                ? "bg-hover text-text"
+                : "text-text/80 hover:text-text"
+            }`}
         >
-        {children}
+            {children}
         </Link>
     );
 }
