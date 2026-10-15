@@ -1,6 +1,5 @@
 type StatCardProps = { label: string; value: number; note: string; highlight?: boolean };
-
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+import { usd } from "~/lib/format";
 
 export function StatCard({ label, value, note, highlight = false }: StatCardProps) {
     const muted = highlight ? "text-white/80" : "text-text-muted";
