@@ -3,14 +3,15 @@ import { ChevronDown, Plus } from "lucide-react";
 import { StatCard } from "~/components/statCard";
 import { CashFlowChart } from "~/components/cashFlowChart";
 import { FollowUpCard } from "~/components/followUpCard";
+import { InvoiceActivity } from "~/components/invoiceActivity";
 
 export default function Overview() {
     return (
         <div className="flex flex-col gap-8">
             <div className="flex items-end justify-between">
                 <div>
-                    <h1 className="mt-2 text-4xl">Good morning, Nig...</h1>
-                    <p className="mt-2 text-text-muted">{"An overview of your current finances"}</p>
+                    <h1 className="mt-2 text-4xl">Good morning, All Might</h1>
+                    <p className="mt-2 text-text-muted">{"Hewe is the cuwwent ovewview of youw finyances, uwu~"}</p>
                 </div>
                 <div className="flex gap-3">
                     <NextLink href="/expenses" className="flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-sm hover:bg-page">
@@ -43,6 +44,8 @@ export default function Overview() {
                 </div>
                 <FollowUpCard />
             </div>
+
+            <InvoiceActivity />
         </div>
     );
 }

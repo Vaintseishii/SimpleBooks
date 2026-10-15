@@ -19,13 +19,13 @@ export function Sidebar() {
       </nav>
 
       {/* user */}
-      <div className="mt-auto flex items-center gap-3 border-t border-border pt-4">
+      <div className="mt-auto gitflex items-center gap-3 border-t border-border pt-4">
         <div className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-sm font-medium text-brand">
-          MC
+          AM
         </div>
         <div className="flex flex-col">
-          <span className="text-sm">Maya Chen</span>
-          <span className="text-xs text-text-muted">Free plan</span>
+          <span className="text-sm">All Might</span>
+          <span className="text-xs text-text-muted">Pro Max Plus Ultra Plan</span>
         </div>
       </div>
     </aside>
