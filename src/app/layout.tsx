@@ -1,6 +1,7 @@
 import "~/styles/globals.css";
 import { Roboto } from "next/font/google";
-import { Sidebar } from "~/components/Sidebar";
+import { Sidebar } from "~/components/sidebar";
+import { Header } from "~/components/header";
 
 const roboto = Roboto({
     subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({
         <body className={`${roboto.className} flex min-h-screen`}>
             <Sidebar />
             <div className="flex flex-1 flex-col">
+                <Header />
                 <main className="flex-1 px-12 py-10">{children}</main>
             </div>
         </body>
