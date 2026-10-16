@@ -2,9 +2,10 @@ import "~/styles/globals.css";
 import { Roboto } from "next/font/google";
 import { Sidebar } from "~/components/sidebar";
 import { Header } from "~/components/header";
+import { TRPCReactProvider } from "~/trpc/react";
 
 const roboto = Roboto({
-    subsets: ["latin"],
+  subsets: ["latin"],
 });
 
 export const metadata = {
@@ -14,9 +15,9 @@ export const metadata = {
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
     return (
         <html lang="en">
