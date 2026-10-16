@@ -6,11 +6,12 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { auth } from "~/auth";
+import { env } from "~/env";
 import { db } from "~/server/db";
 
 /**
@@ -25,10 +26,21 @@ import { db } from "~/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
+// Development only: no OAuth provider is configured, so anonymous requests are
+// attributed to a seeded user. Remove once a real provider is set up in src/auth.ts.
+const DEV_USER_ID = "dev-user-preview";
+
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  const session = await auth();
+
+  const userId =
+    session?.user?.id ??
+    (env.NODE_ENV === "development" ? DEV_USER_ID : undefined);
+
   return {
     db,
-    session: await auth(),
+    session,
+    userId,
     ...opts,
   };
 };
@@ -106,3 +118,18 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+/** Protected (authenticated) procedure. Gives downstream procedures a definite `ctx.userId`. */
+export const protectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.userId) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    return next({
+      ctx: {
+        userId: ctx.userId,
+      },
+    });
+  });

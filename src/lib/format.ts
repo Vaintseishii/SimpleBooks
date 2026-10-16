@@ -1,0 +1,2 @@
+export const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+export const usdWhole = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
