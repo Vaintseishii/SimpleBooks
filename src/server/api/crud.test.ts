@@ -58,6 +58,12 @@ const crudIdInput = z.object({
 
 const createInput = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Name is too long"),
+  contactName: z
+    .string()
+    .trim()
+    .max(120, "Contact name is too long")
+    .optional()
+    .or(z.literal("")),
   email: z
     .string()
     .trim()
@@ -103,6 +109,16 @@ describe("crud input schemas", () => {
   it("createInput accepts valid email or empty literal", () => {
     expect(createInput.parse({ name: "Acme", email: "a@b.com" })).toBeDefined();
     expect(createInput.parse({ name: "Acme", email: "" })).toBeDefined();
+  });
+
+  it("createInput accepts contactName, empty literal, and enforces max", () => {
+    expect(
+      createInput.parse({ name: "Acme", contactName: "Ana Garcia" }),
+    ).toBeDefined();
+    expect(createInput.parse({ name: "Acme", contactName: "" })).toBeDefined();
+    expect(() =>
+      createInput.parse({ name: "Acme", contactName: "A".repeat(121) }),
+    ).toThrow();
   });
 });
 
