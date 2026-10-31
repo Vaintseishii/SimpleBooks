@@ -63,6 +63,8 @@ model Vendor {
       name           String   
       createdAt      DateTime @default(now())
       userId         String
+
+      @@index([userId])
 }
 
 // A customer you bill
