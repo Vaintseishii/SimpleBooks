@@ -1,7 +1,12 @@
 import { LayoutGrid, FileText, Wallet, Users } from "lucide-react";
 import { NavLink } from "./navLinks";
+import { sampleInvoices, sampleToday } from "~/lib/sampleInvoices";
+import { getDisplayStatus } from "~/lib/invoiceStatus";
 
 export function Sidebar() {
+    // Sample data for now. Later: an overdue count from Joseph's invoice router
+    const overdueCount = sampleInvoices.filter((inv) => getDisplayStatus(inv, sampleToday) === "overdue").length;
+
     return (
         <aside className="flex w-58 shrink-0 flex-col border-r border-border-subtle bg-canvas px-4 py-6">
             {/* logo */}
@@ -15,7 +20,9 @@ export function Sidebar() {
                 <NavLink href="/" icon={<LayoutGrid className="size-4" />}>Overview</NavLink>
                 <NavLink href="/invoices" icon={<FileText className="size-4" />}>Invoices</NavLink>
                 <NavLink href="/expenses" icon={<Wallet className="size-4" />}>Expenses</NavLink>
-                <NavLink href="/who-owes-you" icon={<Users className="size-4" />}>Who owes you</NavLink>
+                <NavLink href="/who-owes-you" icon={<Users className="size-4" />} badge={overdueCount} badgeLabel="overdue">
+                    Who owes you
+                </NavLink>
             </nav>
 
             {/* user */}
