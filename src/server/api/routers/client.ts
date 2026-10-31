@@ -10,6 +10,12 @@ const fields = {
     .trim()
     .min(1, "Name is required")
     .max(120, "Name is too long"),
+  contactName: z
+    .string()
+    .trim()
+    .max(120, "Contact name is too long")
+    .optional()
+    .or(z.literal("")),
   email: z
     .string()
     .trim()

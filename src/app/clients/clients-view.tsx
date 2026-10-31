@@ -8,6 +8,7 @@ type ClientRow = RouterOutputs["clients"]["list"][number];
 
 type FormState = {
   name: string;
+  contactName: string;
   email: string;
   phone: string;
   address: string;
@@ -16,6 +17,7 @@ type FormState = {
 
 const EMPTY_FORM: FormState = {
   name: "",
+  contactName: "",
   email: "",
   phone: "",
   address: "",
@@ -112,6 +114,7 @@ export function ClientsView() {
     setEditingId(client.id);
     setForm({
       name: client.name,
+      contactName: client.contactName ?? "",
       email: client.email ?? "",
       phone: client.phone ?? "",
       address: client.address ?? "",
@@ -183,6 +186,16 @@ export function ClientsView() {
               value={form.name}
               onChange={(event) =>
                 setForm({ ...form, name: event.target.value })
+              }
+            />
+          </Field>
+
+          <Field label="Contact person" error={fieldErrors.contactName?.[0]}>
+            <input
+              className={inputClass}
+              value={form.contactName}
+              onChange={(event) =>
+                setForm({ ...form, contactName: event.target.value })
               }
             />
           </Field>
@@ -265,6 +278,11 @@ export function ClientsView() {
             >
               <div className="flex min-w-0 flex-col gap-1">
                 <p className="truncate font-semibold">{client.name}</p>
+                {client.contactName && (
+                  <p className="text-text/60 truncate text-sm">
+                    {client.contactName}
+                  </p>
+                )}
                 <p className="text-text/60 truncate text-sm">
                   {client.email ?? "No email"}
                   {client.phone ? ` · ${client.phone}` : ""}
