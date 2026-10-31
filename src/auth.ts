@@ -1,33 +1,42 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import { compare } from "bcryptjs";
 import NextAuth from "next-auth";
-import GitHub from "next-auth/providers/github";
-import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 
+import { authConfig } from "~/authConfig";
 import { env } from "~/env";
+import { signInSchema } from "~/lib/authValidation";
 import { db } from "~/server/db";
 
-const providers = [
-  env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET
-    ? Google({
-        clientId: env.AUTH_GOOGLE_ID,
-        clientSecret: env.AUTH_GOOGLE_SECRET,
-      })
-    : null,
-  env.AUTH_GITHUB_ID && env.AUTH_GITHUB_SECRET
-    ? GitHub({
-        clientId: env.AUTH_GITHUB_ID,
-        clientSecret: env.AUTH_GITHUB_SECRET,
-      })
-    : null,
-].filter(
-  (provider): provider is NonNullable<typeof provider> => provider !== null,
-);
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(db),
-  providers,
+  ...authConfig,
   secret: env.AUTH_SECRET,
-  pages: {
-    signIn: "/auth/signin",
-  },
+  providers: [
+    Credentials({
+      credentials: {
+        email: {},
+        password: {},
+        remember: {},
+      },
+      // Runs on every sign-in. Return the user to let them in, or null to refuse.
+      authorize: async (credentials) => {
+        const parsed = signInSchema.safeParse(credentials);
+        if (!parsed.success) return null;
+        const { email, password, remember } = parsed.data;
+
+        const user = await db.user.findUnique({ where: { email } });
+        if (!user?.passwordHash) return null;
+
+        const passwordMatches = await compare(password, user.passwordHash);
+        if (!passwordMatches) return null;
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          remember: remember === "true",
+        };
+      },
+    }),
+  ],
 });
