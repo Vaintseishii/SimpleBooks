@@ -45,9 +45,15 @@ export function createCrudRouter<
   orderBy?: Record<string, "asc" | "desc">;
 }) {
   const createInput = z.object(config.fields);
-  const updateInput = createInput
+  // Zod 4 no longer infers `id` after `.partial().extend()`, so the id is part
+  // of the shape before `.partial()` and re-required afterwards.
+  const updateInput = z
+    .object({
+      ...config.fields,
+      id: z.string().min(1, "An id is required"),
+    })
     .partial()
-    .extend({ id: z.string().min(1, "An id is required") });
+    .required({ id: true });
 
   const searchFields = config.searchFields ?? ["name"];
   const orderBy = config.orderBy ?? { createdAt: "desc" };
@@ -101,7 +107,11 @@ export function createCrudRouter<
     update: protectedProcedure
       .input(updateInput)
       .mutation(async ({ ctx, input }) => {
-        const { id, ...changes } = { ...input };
+        // Zod 4 keeps the object output deferred inside this generic factory, so
+        // TypeScript cannot see `id` here; `updateInput` already requires it.
+        const { id, ...changes } = input as unknown as {
+          id: string;
+        } & Record<string, unknown>;
 
         const existing = await config.delegate.findFirst({
           where: { id, userId: ctx.userId },
