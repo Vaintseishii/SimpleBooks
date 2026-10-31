@@ -29,7 +29,9 @@ export default function RootLayout({
         <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
         <body className="flex min-h-screen font-sans">
             <TRPCReactProvider>
-                <Sidebar />
+                <Sidebar
+                    user={{ name: "All Might", plan: "Pro Max", initials: "AM" }}
+                />
                 <div className="flex min-w-0 flex-1 flex-col">
                     <Header />
                     <main className="flex-1 p-8">

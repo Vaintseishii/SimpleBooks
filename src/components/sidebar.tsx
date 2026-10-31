@@ -3,7 +3,11 @@ import { NavLink } from "./navLinks";
 import { sampleInvoices, sampleToday } from "~/lib/sampleInvoices";
 import { getDisplayStatus } from "~/lib/invoiceStatus";
 
-export function Sidebar() {
+interface SidebarProps {
+    user: {name: string; plan: string; initials: string}
+}
+
+export function Sidebar ({user}: SidebarProps) {
     // Sample data for now. Later: an overdue count from Joseph's invoice router
     const overdueCount = sampleInvoices.filter((inv) => getDisplayStatus(inv, sampleToday) === "overdue").length;
 
@@ -29,7 +33,7 @@ export function Sidebar() {
                 <NavLink href="/expenses" icon={<Wallet className="size-4" />}>
                     Expenses
                 </NavLink>
-                
+
                 <NavLink href="/who-owes-you" icon={<Users className="size-4" />} badge={overdueCount} badgeLabel="overdue">
                     Who owes you
                 </NavLink>
@@ -38,11 +42,11 @@ export function Sidebar() {
             {/* user */}
             <div className="mt-auto flex items-center gap-3 border-t border-border-subtle px-2 pt-4">
                 <div className="flex size-9 items-center justify-center rounded-full bg-accent-soft text-label-s text-fg-accent">
-                    AM
+                    {user.initials}
                 </div>
                 <div className="flex min-w-0 flex-col">
-                    <span className="truncate text-label-m">All Might</span>
-                    <span className="truncate text-caption text-fg-tertiary">Pro Max Plus Ultra Plan</span>
+                    <span className="truncate text-label-m">{user.name}</span>
+                    <span className="truncate text-caption text-fg-tertiary">{user.plan}</span>
                 </div>
             </div>
         </aside>
