@@ -52,6 +52,14 @@ model User {
     expenses  Expense[]
 }
 
+// Vendor
+model Vendor {
+      id          string   @id @default(cuid())
+      name        string   @default(now())
+      createdAt   string
+      userId      string
+}
+
 // A customer you bill
 model Client {
     id          String   @id @default(cuid())
