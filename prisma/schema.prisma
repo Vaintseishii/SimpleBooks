@@ -28,6 +28,11 @@ enum ExpenseCategory {
     SOFTWARE
 }
 
+enum ExpenseStatus {
+     PAID
+     UNPAID
+}
+
 // ─────────────────────────────────────────────
 // Core business models
 // ─────────────────────────────────────────────
@@ -134,6 +139,7 @@ model InvoiceItem {
 model Expense {
     id          String          @id @default(cuid())
     userId      String
+    vendorId    String
     merchant    String?
     description String
     category    ExpenseCategory @default(SOFTWARE)
