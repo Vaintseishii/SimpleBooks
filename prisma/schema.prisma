@@ -31,6 +31,9 @@ enum ExpenseCategory {
 enum ExpenseStatus {
      PAID
      UNPAID
+     PENDING
+     OVERDUE
+     CANCELLED
 }
 
 // ─────────────────────────────────────────────
