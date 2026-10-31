@@ -17,9 +17,19 @@ export function Sidebar() {
 
             <p className="mb-2 px-3 text-overline uppercase text-fg-tertiary">Workspace</p>
             <nav className="flex flex-col gap-0.5">
-                <NavLink href="/" icon={<LayoutGrid className="size-4" />}>Overview</NavLink>
-                <NavLink href="/invoices" icon={<FileText className="size-4" />}>Invoices</NavLink>
-                <NavLink href="/expenses" icon={<Wallet className="size-4" />}>Expenses</NavLink>
+
+                <NavLink href="/" icon={<LayoutGrid className="size-4" />}>
+                    Overview
+                </NavLink>
+
+                <NavLink href="/invoices" icon={<FileText className="size-4" />}>
+                    Invoices
+                </NavLink>
+
+                <NavLink href="/expenses" icon={<Wallet className="size-4" />}>
+                    Expenses
+                </NavLink>
+                
                 <NavLink href="/who-owes-you" icon={<Users className="size-4" />} badge={overdueCount} badgeLabel="overdue">
                     Who owes you
                 </NavLink>
