@@ -15,10 +15,10 @@ export function Breadcrumb() {
     const pathname = usePathname();
 
     return (
-        <div className="flex items-center gap-2 text-sm">
-            <span className="text-text-muted">Workspace</span>
-            <ChevronRight className="size-4 text-text-muted" />
-            <span className="font-medium">{labels[pathname] ?? ""}</span>
+        <div className="flex items-center gap-2">
+            <span className="text-body-m text-fg-tertiary">Workspace</span>
+            <ChevronRight className="size-4 text-fg-tertiary" />
+            <span className="text-label-m text-fg-primary">{labels[pathname] ?? ""}</span>
         </div>
     );
 }

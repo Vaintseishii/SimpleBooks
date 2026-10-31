@@ -12,10 +12,11 @@ export function NavLink({ href, icon, children }: NavLinkProps) {
     return (
         <NextLink
             href={href}
-            className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
+            aria-current={isActive ? "page" : undefined}
+            className={`flex h-10 items-center gap-3 rounded-md px-3 text-body-m transition-colors duration-120 ease-out focus-visible:outline-2 focus-visible:outline-border-focus ${
                 isActive
-                    ? "bg-brand-soft font-medium text-brand"
-                    : "text-text-muted hover:bg-brand-soft/60 hover:text-text"
+                    ? "bg-accent-soft font-medium text-fg-accent"
+                    : "text-fg-secondary hover:bg-accent-soft/60 hover:text-fg-primary"
             }`}
         >
             {icon}

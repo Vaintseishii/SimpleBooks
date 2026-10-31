@@ -1,20 +1,154 @@
 @import "tailwindcss";
 
 @theme {
-    --color-page: #f5f5f2;        /* app background */
-    --color-sidebar: #eef0eb;
-    --color-surface: #ffffff;     /* cards */
-    --color-border: #e4e4df;
-    --color-text: #1f2420;
-    --color-text-muted: #6b706b;
-    --color-brand: #2f5a47;       /* buttons, hero card */
-    --color-brand-soft: #e5ece6;  /* active nav, Paid pill */
-    --color-danger: #b5503c;      /* Overdue */
-    --color-warning: #8a6a2b;     /* Unpaid */
+    /* ---------- Fonts ---------- */
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+    /* ---------- Backgrounds ---------- */
+    --color-canvas: #f5f5f2;        /* app canvas, sidebar */
+    --color-surface: #ffffff;       /* cards, panels, tables */
+    --color-sunken: #f3f6f1;        /* table headers, input wells */
+    --color-inverse: #131c17;       /* tooltips, inverse chips */
+    --color-accent: #2c5f47;        /* primary buttons, emphasis */
+    --color-accent-hover: #1f4f3b;
+    --color-accent-soft: #eef4f0;   /* active nav, selected rows, callouts */
+    --color-scrim: rgb(19 28 23 / 0.24);
+
+    /* ---------- Text ---------- */
+    --color-fg-primary: #131c17;    /* titles, values, table headers */
+    --color-fg-secondary: #45544b;  /* body copy, table cells */
+    --color-fg-tertiary: #78877c;   /* metadata, captions, placeholders */
+    --color-fg-disabled: #a3afa4;
+    --color-fg-inverse: #ffffff;
+    --color-fg-accent: #2c5f47;     /* links, active labels */
+    --color-fg-on-accent: #ffffff;
+
+    /* ---------- Borders ---------- */
+    --color-border-subtle: #e8ede7;  /* hairlines, table dividers */
+    --color-border-default: #dce3db; /* inputs, card edges */
+    --color-border-strong: #c7d0c6;
+    --color-border-accent: #2c5f47;  /* active input */
+    --color-border-focus: #3f7359;   /* 2px focus ring */
+
+    /* ---------- Status (tint bg + text) ---------- */
+    --color-status-draft: #e8ede7;
+    --color-status-draft-fg: #45544b;
+    --color-status-sent: #eff3f8;
+    --color-status-sent-fg: #445c7c;
+    --color-status-paid: #eef4f0;
+    --color-status-paid-fg: #1f4f3b;
+    --color-status-paid-solid: #1f4f3b;
+    --color-status-overdue: #fbeee9;
+    --color-status-overdue-fg: #984534;
+    --color-status-unpaid: #f9f3e3;
+    --color-status-unpaid-fg: #7c6020;
+
+    /* ---------- Chart series (fixed order, max 6) ---------- */
+    --color-chart-1: #3f7359;       /* revenue, money in */
+    --color-chart-2: #7690b2;       /* committed, money out */
+    --color-chart-3: #b48f35;       /* pending */
+    --color-chart-4: #dc9c84;       /* overdue */
+    --color-chart-5: #86638e;       /* plum */
+    --color-chart-6: #47837e;       /* teal */
+    --color-chart-positive: #2c5f47;
+    --color-chart-negative: #b25540;
+    --color-chart-warning: #97762a;
+    --color-chart-neutral: #a3afa4;
+
+    /* ---------- Legacy names, still used by the clients page ---------- */
+    --color-border: var(--color-border-default);
+    --color-text: var(--color-fg-primary);
+
+    /* ---------- Type scale (15 styles) ---------- */
+    --text-display-hero: 2rem;
+    --text-display-hero--line-height: 2.375rem;
+    --text-display-hero--letter-spacing: -0.015em;
+    --text-display-hero--font-weight: 600;
+
+    --text-display-page: 1.75rem;
+    --text-display-page--line-height: 2.125rem;
+    --text-display-page--letter-spacing: -0.01em;
+    --text-display-page--font-weight: 600;
+
+    --text-title-section: 1.25rem;
+    --text-title-section--line-height: 1.625rem;
+    --text-title-section--letter-spacing: -0.005em;
+    --text-title-section--font-weight: 600;
+
+    --text-title-card: 0.9375rem;
+    --text-title-card--line-height: 1.25rem;
+    --text-title-card--font-weight: 600;
+
+    --text-body-l: 0.9375rem;
+    --text-body-l--line-height: 1.375rem;
+
+    --text-body-m: 0.875rem;
+    --text-body-m--line-height: 1.25rem;
+
+    --text-body-s: 0.8125rem;
+    --text-body-s--line-height: 1.125rem;
+
+    --text-label-m: 0.8125rem;
+    --text-label-m--line-height: 1rem;
+    --text-label-m--letter-spacing: 0.01em;
+    --text-label-m--font-weight: 500;
+
+    --text-label-s: 0.75rem;
+    --text-label-s--line-height: 1rem;
+    --text-label-s--letter-spacing: 0.01em;
+    --text-label-s--font-weight: 500;
+
+    --text-overline: 0.6875rem;
+    --text-overline--line-height: 0.875rem;
+    --text-overline--letter-spacing: 0.09em;
+    --text-overline--font-weight: 600;
+
+    --text-caption: 0.75rem;
+    --text-caption--line-height: 1rem;
+    --text-caption--letter-spacing: 0.005em;
+
+    /* numeric styles: always pair with font-mono */
+    --text-num-hero: 2.25rem;
+    --text-num-hero--line-height: 2.625rem;
+    --text-num-hero--letter-spacing: -0.01em;
+    --text-num-hero--font-weight: 500;
+
+    --text-num-l: 1.25rem;
+    --text-num-l--line-height: 1.625rem;
+    --text-num-l--letter-spacing: -0.005em;
+    --text-num-l--font-weight: 500;
+
+    --text-num-m: 0.875rem;
+    --text-num-m--line-height: 1.25rem;
+
+    --text-num-s: 0.75rem;
+    --text-num-s--line-height: 1rem;
+    --text-num-s--letter-spacing: 0.005em;
+
+    /* ---------- Radius (no others exist) ---------- */
+    --radius-xs: 4px;   /* checkbox, swatch, bar tops */
+    --radius-sm: 6px;   /* chips, tags, small controls */
+    --radius-md: 8px;   /* inputs, buttons, fields */
+    --radius-lg: 12px;  /* cards, panels, tables */
+    --radius-xl: 16px;  /* dialogs, sheets */
+
+    /* ---------- Elevation (ink-tinted, never black) ---------- */
+    --shadow-card: 0 1px 2px 0 rgb(19 28 23 / 0.08);
+    --shadow-raise: 0 4px 12px -2px rgb(19 28 23 / 0.16);
+    --shadow-overlay: 0 16px 40px -8px rgb(19 28 23 / 0.24);
+
+    /* ---------- Motion ---------- */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+    /* ---------- Layout ---------- */
+    --container-content: 70rem; /* 1120px max content width */
 }
 
 @layer base {
     body {
-        @apply bg-page text-text;
+        @apply bg-canvas text-fg-primary antialiased;
     }
 }

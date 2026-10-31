@@ -1,23 +1,31 @@
-export type DisplayStatus = "draft" | "unpaid" | "overdue" | "paid";
+export type DisplayStatus = "draft" | "sent" | "overdue" | "paid" | "unpaid";
 
 const styles: Record<DisplayStatus, string> = {
-    draft: "bg-border/70 text-text-muted",
-    unpaid: "bg-warning/15 text-warning",
-    overdue: "bg-danger/10 text-danger",
-    paid: "bg-brand-soft text-brand",
+    draft: "bg-status-draft text-status-draft-fg",
+    sent: "bg-status-sent text-status-sent-fg",
+    overdue: "bg-status-overdue text-status-overdue-fg",
+    paid: "bg-status-paid text-status-paid-fg",
+    unpaid: "bg-status-unpaid text-status-unpaid-fg", // bills you owe
 };
 
 const labels: Record<DisplayStatus, string> = {
     draft: "Draft",
-    unpaid: "Unpaid",
+    sent: "Sent",
     overdue: "Overdue",
     paid: "Paid",
+    unpaid: "Unpaid",
 };
 
-export function StatusPill({ status }: { status: DisplayStatus }) {
+type StatusPillProps = {
+    status: DisplayStatus;
+    solid?: boolean; // emphasis moments only, e.g. latest payment
+};
+
+export function StatusPill({ status, solid = false }: StatusPillProps) {
+    const color = solid && status === "paid" ? "bg-status-paid-solid text-fg-on-accent" : styles[status];
+
     return (
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs ${styles[status]}`}>
-            <span className="size-1.5 rounded-full bg-current" />
+        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-label-s uppercase ${color}`}>
             {labels[status]}
         </span>
     );
