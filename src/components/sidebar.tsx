@@ -8,7 +8,7 @@ export function Sidebar() {
     const overdueCount = sampleInvoices.filter((inv) => getDisplayStatus(inv, sampleToday) === "overdue").length;
 
     return (
-        <aside className="flex w-58 shrink-0 flex-col border-r border-border-subtle bg-canvas px-4 py-6">
+        <aside className="flex sticky top-0 h-dvh shrink-0 flex-col border-r border-border-subtle bg-canvas px-4 py-6">
             {/* logo */}
             <div className="mb-8 flex items-center gap-3 px-2">
                 <div className="size-8 rounded-md bg-accent" />
