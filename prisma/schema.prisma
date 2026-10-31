@@ -188,6 +188,7 @@ model Workspace {
 model Payment {
     id                String          @id @default(cuid())
     invoiceId         String
+    userId            String
     amount            Decimal         @db.Decimal(12, 2)
     date              DateTime        @default(now())
     createdAt         DateTime        @default(now())
@@ -195,6 +196,7 @@ model Payment {
     invoice           Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
     @@index([invoiceId])
+    @@index([userId])
 }
 
 // ─────────────────────────────────────────────
