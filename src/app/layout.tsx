@@ -1,7 +1,9 @@
 import "~/styles/globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Sidebar } from "~/components/sidebar";
+import { auth } from "~/auth";
+import { AppShell } from "~/components/appShell";
 import { Header } from "~/components/header";
+import { Sidebar } from "~/components/sidebar";
 import { TRPCReactProvider } from "~/trpc/react";
 
 const geist = Geist({
@@ -20,26 +22,29 @@ export const metadata = {
     icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    // Middleware already sent signed-out people to /auth/signin,
+    // so outside /auth there is always a session here.
+    const session = await auth();
+    const user = {
+        name: session?.user?.name ?? session?.user?.email ?? "",
+        detail: session?.user?.email ?? "",
+        image: session?.user?.image,
+    };
+
     return (
         <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
-        <body className="flex min-h-screen font-sans">
-            <TRPCReactProvider>
-                <Sidebar
-                    user={{ name: "All Might", plan: "Pro Max", initials: "AM" }}
-                />
-                <div className="flex min-w-0 flex-1 flex-col">
-                    <Header />
-                    <main className="flex-1 p-8">
-                        <div className="mx-auto w-full max-w-content">{children}</div>
-                    </main>
-                </div>
-            </TRPCReactProvider>
-        </body>
+            <body className="min-h-screen font-sans">
+                <TRPCReactProvider>
+                    <AppShell sidebar={<Sidebar user={user} />} header={<Header />}>
+                        {children}
+                    </AppShell>
+                </TRPCReactProvider>
+            </body>
         </html>
     );
 }
