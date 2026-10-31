@@ -72,6 +72,7 @@ model Vendor {
     expenses          Expense[]
       
     @@index([userId])
+    @@index([name])
 }
 
 // A customer you bill
