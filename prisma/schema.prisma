@@ -94,7 +94,7 @@ model Invoice {
       id             String        @id @default(cuid())
       userId         String
       clientId       String
-      number         String        @default("") // e.g. "INV-1052"
+      number         String
       status         InvoiceStatus @default(DRAFT)
       projectTitle   String?
       issueDate      DateTime      @default(now())
@@ -159,6 +159,8 @@ model Expense {
     updatedAt        DateTime        @updatedAt
 
     user             User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    vendor           Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
 
     @@index([userId])
     @@index([date])
