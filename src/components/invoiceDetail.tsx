@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import NextLink from "next/link";
 import {
     ArrowUpRight,
-    CalendarDays,
-    ChevronDown,
     CheckCircle2,
     CircleDollarSign,
-    Download,
     Edit,
     Eye,
     Mail,
@@ -18,11 +16,10 @@ import {
 } from "lucide-react";
 import { api } from "~/trpc/react";
 import { StatusPill } from "./statusPill";
-import { primaryButton, secondaryButton, dangerButton } from "./buttonStyles";
+import { primaryButton, secondaryButton } from "./buttonStyles";
 import { cardClass } from "./fieldStyles";
 import { usd } from "~/lib/format";
 import { shortDate, getDisplayStatus } from "~/lib/invoiceStatus";
-import { plural } from "~/lib/receivables";
 import type { RouterOutputs } from "~/trpc/react";
 
 type InvoiceWithRelations = RouterOutputs["invoices"]["byId"];
@@ -30,19 +27,6 @@ type InvoiceWithRelations = RouterOutputs["invoices"]["byId"];
 function formatDate(date: Date | string | null | undefined) {
     if (!date) return "—";
     return shortDate.format(new Date(date));
-}
-
-function getStatusColor(status: string) {
-    switch (status) {
-        case "PAID":
-            return "bg-status-paid-bg text-status-paid-fg";
-        case "SENT":
-            return "bg-status-sent-bg text-status-sent-fg";
-        case "DRAFT":
-            return "bg-status-draft-bg text-status-draft-fg";
-        default:
-            return "bg-sunken text-fg-secondary";
-    }
 }
 
 export function InvoiceDetail({
@@ -61,7 +45,8 @@ export function InvoiceDetail({
     const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
 
     const displayStatus = getDisplayStatus(invoice, new Date());
-    const balance = invoice.total - (invoice.payments?.reduce((sum, p) => sum + Number(p.amount), 0) ?? 0);
+    const totalPaid = invoice.payments?.reduce((sum, p) => sum + Number(p.amount), 0) ?? 0;
+    const balance = Number(invoice.total) - totalPaid;
 
     const updateInvoice = api.invoices.update.useMutation({
         onSuccess: async () => {
@@ -93,7 +78,7 @@ export function InvoiceDetail({
         createPayment.mutate({
             invoiceId: invoice.id,
             amount,
-            date: new Date(paymentDate),
+            date: paymentDate ? new Date(paymentDate) : new Date(),
         });
     }
 

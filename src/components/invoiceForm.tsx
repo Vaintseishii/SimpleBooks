@@ -20,6 +20,7 @@ import {
 } from "~/lib/invoiceDraft";
 import type { InvoiceStatus } from "~/lib/sampleInvoices";
 import type { ClientOption, PaymentMethod, WorkspaceInfo } from "~/lib/sampleBilling";
+import type { InvoiceInput } from "~/lib/invoiceDraft";
 
 type InvoiceFormProps = {
     clients: ClientOption[];
@@ -27,7 +28,7 @@ type InvoiceFormProps = {
     workspace: WorkspaceInfo;
     existingNumbers: string[];
     today: Date;
-    onSave: (input: ReturnType<typeof toInvoiceInput>) => Promise<void>;
+    onSave: (input: InvoiceInput) => Promise<unknown>;
     isSaving: boolean;
 };
 
@@ -87,7 +88,7 @@ export function InvoiceForm({
             noValidate
             onSubmit={(e) => {
                 e.preventDefault();
-                save("SENT");
+                void save("SENT");
             }}
             className="flex flex-col gap-8"
         >
@@ -97,7 +98,7 @@ export function InvoiceForm({
                     <p className="text-overline uppercase text-fg-tertiary">Good work deserves a good invoice</p>
                     <h1 className="mt-2 text-display-page">New invoice</h1>
                     <p className="mt-2 max-w-[65ch] text-body-l text-fg-secondary">
-                        Add the details, make it yours, and send when you're ready.
+                        Add the details, make it yours, and send when you&apos;re ready.
                     </p>
                 </div>
                 <div className="flex shrink-0 gap-3">

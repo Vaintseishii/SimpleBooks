@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
-import type { Invoice, InvoiceItem, Payment } from "../../../../generated/prisma";
 
 const invoiceItemInput = z.object({
   description: z.string().trim().min(1, "Description is required").max(500),
@@ -67,8 +66,9 @@ export const invoiceRouter = createTRPCRouter({
 
       if (input.dateFrom || input.dateTo) {
         where.issueDate = {};
-        if (input.dateFrom) where.issueDate.gte = input.dateFrom;
-        if (input.dateTo) where.issueDate.lte = input.dateTo;
+        const issueDateFilter = where.issueDate as Record<string, Date>;
+        if (input.dateFrom) issueDateFilter.gte = input.dateFrom;
+        if (input.dateTo) issueDateFilter.lte = input.dateTo;
       }
 
       const [invoices, total] = await Promise.all([
@@ -160,7 +160,7 @@ export const invoiceRouter = createTRPCRouter({
 
       const existing = await db.invoice.findFirst({
         where: { id, userId: ctx.userId },
-        include: { items: true },
+        include: { items: true, payments: true },
       });
 
       if (!existing) {

@@ -4,3 +4,5 @@ const base =
 export const primaryButton = `${base} bg-accent text-fg-on-accent hover:bg-accent-hover`;
 
 export const secondaryButton = `${base} border border-border-default bg-surface text-fg-primary hover:bg-sunken`;
+
+export const dangerButton = `${base} border border-red-500/40 bg-red-500/10 text-red-500 hover:bg-red-500/20`;

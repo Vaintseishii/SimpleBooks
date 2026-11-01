@@ -44,7 +44,7 @@ export type InvoiceInput = {
     notesToClient: string | null;
     items: {
         description: string;
-        subDescription: string | null;
+        subDescription?: string;
         quantity: number;
         unitPrice: number;
         amount: number;
@@ -173,7 +173,7 @@ export function toInvoiceInput(draft: InvoiceDraft, status: InvoiceStatus, curre
         notesToClient: draft.notesToClient.trim() || null,
         items: draft.items.filter(isFilled).map((item) => ({
             description: item.description.trim(),
-            subDescription: item.subDescription.trim() || null,
+            subDescription: item.subDescription.trim() || undefined,
             quantity: toNumber(item.quantity),
             unitPrice: roundMoney(toNumber(item.unitPrice)),
             amount: lineAmount(item),

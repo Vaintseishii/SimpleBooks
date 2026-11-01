@@ -32,7 +32,12 @@ function InvoicesPageContent() {
         dateTo: dateFilter === "lastMonth" ? lastDayLastMonth : undefined,
     });
 
-    const invoices = list.data?.invoices ?? [];
+    // Transform to ensure projectTitle is never null
+    const rawInvoices = list.data?.invoices ?? [];
+    const invoices = rawInvoices.map((inv) => ({
+        ...inv,
+        projectTitle: inv.projectTitle ?? "",
+    }));
     const sent = invoices.filter((inv) => inv.status === "SENT");
     const overdue = sent.filter((inv) => getDisplayStatus(inv, today) === "overdue");
     const paidThisMonth = invoices.filter((inv) => inv.paidAt && sameMonth(new Date(inv.paidAt), today));
@@ -173,7 +178,7 @@ function InvoicesPageContent() {
 
             <p className="flex items-center gap-2 text-body-s text-fg-tertiary">
                 <Info className="size-4" />
-                Outstanding includes sent and overdue invoices. Drafts aren't included until you send them.
+                Outstanding includes sent and overdue invoices. Drafts aren&apos;t included until you send them.
             </p>
         </div>
     );
