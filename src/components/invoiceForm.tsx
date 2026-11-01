@@ -27,11 +27,21 @@ type InvoiceFormProps = {
     workspace: WorkspaceInfo;
     existingNumbers: string[];
     today: Date;
+    onSave: (input: ReturnType<typeof toInvoiceInput>) => Promise<void>;
+    isSaving: boolean;
 };
 
 const selectIcon = "pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-fg-secondary";
 
-export function InvoiceForm({ clients, paymentMethods, workspace, existingNumbers, today }: InvoiceFormProps) {
+export function InvoiceForm({
+    clients,
+    paymentMethods,
+    workspace,
+    existingNumbers,
+    today,
+    onSave,
+    isSaving,
+}: InvoiceFormProps) {
     const [draft, setDraft] = useState<InvoiceDraft>(() =>
         createDraft({
             today,
@@ -53,7 +63,7 @@ export function InvoiceForm({ clients, paymentMethods, workspace, existingNumber
         setSaved(null);
     }
 
-    function save(status: InvoiceStatus) {
+    async function save(status: InvoiceStatus) {
         const found = validateDraft(draft, existingNumbers, status);
         setErrors(found);
         if (Object.values(found).some(Boolean)) {
@@ -62,10 +72,14 @@ export function InvoiceForm({ clients, paymentMethods, workspace, existingNumber
         }
 
         const input = toInvoiceInput(draft, status, workspace.currency, new Date());
-        // TODO: swap for the real mutation once Joseph's invoice router lands, e.g.
-        // createInvoice.mutate(input) with api.invoice.create.useMutation(), then router.push("/invoices")
-        console.info("Invoice ready to save", input);
-        setSaved({ status, number: input.number });
+        try {
+            await onSave(input);
+            setSaved({ status, number: input.number });
+        } catch (err) {
+            // Error handled by the mutation
+            console.error("Failed to save invoice:", err);
+            setSaved(null);
+        }
     }
 
     return (
@@ -83,14 +97,19 @@ export function InvoiceForm({ clients, paymentMethods, workspace, existingNumber
                     <p className="text-overline uppercase text-fg-tertiary">Good work deserves a good invoice</p>
                     <h1 className="mt-2 text-display-page">New invoice</h1>
                     <p className="mt-2 max-w-[65ch] text-body-l text-fg-secondary">
-                        Add the details, make it yours, and send when you’re ready.
+                        Add the details, make it yours, and send when you're ready.
                     </p>
                 </div>
                 <div className="flex shrink-0 gap-3">
-                    <button type="button" onClick={() => save("DRAFT")} className={secondaryButton}>
+                    <button
+                        type="button"
+                        onClick={() => save("DRAFT")}
+                        className={secondaryButton}
+                        disabled={isSaving}
+                    >
                         Save draft
                     </button>
-                    <button type="submit" className={primaryButton}>
+                    <button type="submit" className={primaryButton} disabled={isSaving}>
                         <ArrowUpRight className="size-4" /> Send invoice
                     </button>
                 </div>
@@ -102,10 +121,7 @@ export function InvoiceForm({ clients, paymentMethods, workspace, existingNumber
                     <p>
                         {saved.status === "SENT"
                             ? `${saved.number} is ready to go to ${client?.email ?? client?.name ?? "your client"}.`
-                            : `${saved.number} is saved as a draft.`}{" "}
-                        <span className="text-fg-secondary">
-                            (Sample mode: nothing is stored until the invoice router is connected.)
-                        </span>
+                            : `${saved.number} is saved as a draft.`}
                     </p>
                 </div>
             )}
@@ -278,7 +294,7 @@ export function InvoiceForm({ clients, paymentMethods, workspace, existingNumber
                                 rows={3}
                                 value={draft.notesToClient}
                                 onChange={(e) => update("notesToClient", e.target.value)}
-                                placeholder={`Thank you for trusting ${workspace.name} with your brand. It’s a pleasure working with you.`}
+                                placeholder={`Thank you for trusting ${workspace.name} with your brand. It's a pleasure working with you.`}
                                 className={`${fieldClass()} h-auto resize-none py-3`}
                             />
                         </div>
