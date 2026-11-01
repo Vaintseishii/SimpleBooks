@@ -1,9 +1,9 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
-import { createCrudRouter, type CrudDelegate } from "~/server/api/crud";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
-import type { Invoice, InvoiceItem } from "../../../../generated/prisma";
+import type { Invoice, InvoiceItem, Payment } from "../../../../generated/prisma";
 
 const invoiceItemInput = z.object({
   description: z.string().trim().min(1, "Description is required").max(500),
@@ -34,7 +34,11 @@ const invoiceUpdateInput = invoiceCreateInput.partial().extend({
   id: z.string().min(1),
 });
 
-type InvoiceWithItems = Invoice & { items: InvoiceItem[] };
+const paymentInput = z.object({
+  invoiceId: z.string().min(1),
+  amount: z.number().positive("Amount must be positive"),
+  date: z.date(),
+});
 
 export const invoiceRouter = createTRPCRouter({
   list: protectedProcedure
@@ -195,6 +199,14 @@ export const invoiceRouter = createTRPCRouter({
         updateData.sentAt = new Date();
       }
 
+      // Auto-update status to PAID if fully paid
+      const totalPaid = existing.payments?.reduce((sum, p) => sum + Number(p.amount), 0) ?? 0;
+      const newTotal = invoiceData.total ?? Number(existing.total);
+      if (totalPaid >= newTotal && existing.status !== "PAID") {
+        updateData.status = "PAID";
+        updateData.paidAt = new Date();
+      }
+
       const invoice = await db.invoice.update({
         where: { id },
         data: updateData,
@@ -221,6 +233,53 @@ export const invoiceRouter = createTRPCRouter({
       return { id: input.id };
     }),
 
+  createPayment: protectedProcedure
+    .input(paymentInput)
+    .mutation(async ({ ctx, input }) => {
+      const { invoiceId, amount, date } = input;
+
+      const invoice = await db.invoice.findFirst({
+        where: { id: invoiceId, userId: ctx.userId },
+        include: { payments: true },
+      });
+
+      if (!invoice) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const totalPaid = invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+      const newTotalPaid = totalPaid + amount;
+
+      if (newTotalPaid > Number(invoice.total) + 0.01) { // Allow small rounding difference
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Payment amount exceeds balance due. Balance: ${Number(invoice.total) - totalPaid}`,
+        });
+      }
+
+      const payment = await db.payment.create({
+        data: {
+          invoiceId,
+          userId: ctx.userId,
+          amount,
+          date,
+        },
+      });
+
+      // Update invoice status if fully paid
+      if (newTotalPaid >= Number(invoice.total) - 0.01 && invoice.status !== "PAID") {
+        await db.invoice.update({
+          where: { id: invoiceId },
+          data: {
+            status: "PAID",
+            paidAt: new Date(),
+          },
+        });
+      }
+
+      return payment;
+    }),
+
   // Get next invoice number
   nextNumber: protectedProcedure.query(async ({ ctx }) => {
     const lastInvoice = await db.invoice.findFirst({
@@ -236,5 +295,3 @@ export const invoiceRouter = createTRPCRouter({
     return `INV-${Math.max(1000, ...numbers) + 1}`;
   }),
 });
-
-import { TRPCError } from "@trpc/server";
