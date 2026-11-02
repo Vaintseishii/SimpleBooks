@@ -26,6 +26,7 @@ enum ExpenseCategory {
     WORKSPACE
     SUPPLIES
     SOFTWARE
+    RENT
 }
 
 enum ExpenseStatus {

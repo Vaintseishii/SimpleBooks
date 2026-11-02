@@ -11,6 +11,16 @@ const invoiceItemInput = z.object({
   unitPrice: z.number().min(0, "Unit price cannot be negative"),
 });
 
+// Helper to calculate totals from items, discount, taxRate
+function calculateTotals(items: { quantity: number; unitPrice: number }[], discount: number, taxRate: number) {
+  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  const discountAmount = Math.min(Math.max(0, discount), subtotal);
+  const taxableAmount = subtotal - discountAmount;
+  const tax = Math.round(taxableAmount * taxRate / 100 * 100) / 100;
+  const total = Math.round((subtotal - discountAmount + tax) * 100) / 100;
+  return { subtotal, discount: discountAmount, tax, total };
+}
+
 const invoiceCreateInput = z.object({
   clientId: z.string().min(1, "Client is required"),
   number: z.string().trim().min(1, "Invoice number is required").max(50),
@@ -192,6 +202,15 @@ export const invoiceRouter = createTRPCRouter({
             amount: item.quantity * item.unitPrice,
           })),
         };
+
+        // Recalculate totals from new items
+        const discount = invoiceData.discount ?? Number(existing.discount);
+        const taxRate = invoiceData.taxRate ?? Number(existing.taxRate);
+        const totals = calculateTotals(items, discount, taxRate);
+        updateData.subtotal = totals.subtotal;
+        updateData.discount = totals.discount;
+        updateData.tax = totals.tax;
+        updateData.total = totals.total;
       }
 
       // Handle sentAt when status changes to SENT
