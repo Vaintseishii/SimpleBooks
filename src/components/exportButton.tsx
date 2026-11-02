@@ -2,22 +2,27 @@
 
 import { Download } from "lucide-react";
 import { secondaryButton } from "./buttonStyles";
-import { sampleInvoices, sampleToday } from "~/lib/sampleInvoices";
+import { api } from "~/trpc/react";
 import { getDisplayStatus } from "~/lib/invoiceStatus";
 
 const isoDate = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
 const csvCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
 export function ExportButton() {
-    function handleExport() {
+    const utils = api.useUtils();
+
+    async function handleExport() {
+        // Fetch on click (from cache if it's fresh), so the page doesn't load invoices twice
+        const { invoices } = await utils.invoices.list.fetch({ take: 100 });
+        const today = new Date();
         const header = ["Invoice", "Client", "Project", "Issued", "Due date", "Status", "Amount"];
-        const rows = sampleInvoices.map((inv) => [
+        const rows = invoices.map((inv) => [
             inv.number,
             inv.client.name,
-            inv.projectTitle,
+            inv.projectTitle ?? "",
             isoDate(inv.issueDate),
             isoDate(inv.dueDate),
-            getDisplayStatus(inv, sampleToday).toUpperCase(),
+            getDisplayStatus(inv, today).toUpperCase(),
             inv.total.toFixed(2),
         ]);
         const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
@@ -31,7 +36,7 @@ export function ExportButton() {
     }
 
     return (
-        <button type="button" onClick={handleExport} className={secondaryButton}>
+        <button type="button" onClick={() => void handleExport()} className={secondaryButton}>
             <Download className="size-4" /> Export
         </button>
     );
