@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Download, Info, Plus } from "lucide-react";
+import { CheckCircle2, Info, Plus } from "lucide-react";
 import { StatCard } from "./statCard";
 import { ExpensesTable } from "./expensesTable";
 import { ExpenseForm } from "./expenseForm";
 import { CategoryBreakdown } from "./categoryBreakdown";
-import { primaryButton, secondaryButton } from "./buttonStyles";
+import { primaryButton } from "./buttonStyles";
 import { usd } from "~/lib/format";
-import { toDateInput, type ExpenseInput } from "~/lib/expenseDraft";
+import type { ExpenseInput } from "~/lib/expenseDraft";
 import {
     categoryBreakdown,
     categoryLabels,
@@ -19,18 +19,13 @@ import {
     sumAmounts,
     type Period,
 } from "~/lib/expenseSummary";
-import type { Expense, PaymentAccount } from "~/lib/sampleExpenses";
+import type { Expense } from "~/lib/sampleExpenses";
 import { api } from "~/trpc/react";
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 const percent = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 });
-const csvCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
-type ExpensesViewProps = {
-    paymentAccounts: PaymentAccount[];
-};
-
-export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
+export function ExpensesView() {
     const [today] = useState(() => new Date());
     const [period, setPeriod] = useState<Period>(monthKey(today));
     const [formOpen, setFormOpen] = useState(false);
@@ -54,8 +49,6 @@ export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
         amount: e.amount,
         date: e.date,
         status: e.status === "UNPAID" ? "UNPAID" : "PAID",
-        receiptUrl: e.receiptUrl,
-        paidWith: e.paidWith,
         notes: e.notes,
     }));
 
@@ -63,8 +56,6 @@ export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
     const inRange = expenses.filter((e) => inPeriod(e.date, period, today));
     const spent = sumAmounts(inRange);
     const unpaid = expenses.filter((e) => e.status === "UNPAID"); // every unpaid bill, whatever the month
-    const withReceipt = inRange.filter((e) => e.receiptUrl).length;
-    const missing = inRange.length - withReceipt;
     const largest = categoryBreakdown(inRange)[0];
     const rangeName = periodLabel(period, today);
 
@@ -87,9 +78,7 @@ export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
                 date: input.date,
                 category: input.category,
                 status: input.status,
-                paidWith: input.paidWith,
                 notes: input.notes,
-                receiptUrl: null, // no receipt upload yet, and the router only accepts a full URL
             });
             await Promise.all([utils.expenses.list.invalidate(), utils.vendors.list.invalidate()]);
             setPeriod(monthKey(input.date)); // jump to the month you just recorded into
@@ -102,37 +91,12 @@ export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
 
     async function markPaid(id: string) {
         setError(null);
-        const expense = expenses.find((e) => e.id === id);
         try {
-            await updateExpense.mutateAsync({ id, status: "PAID", paidWith: expense?.paidWith ?? paymentAccounts[0]?.label ?? null });
+            await updateExpense.mutateAsync({ id, status: "PAID" });
             await utils.expenses.list.invalidate();
         } catch {
             setError("Couldn’t mark that bill as paid. Please try again.");
         }
-    }
-
-    function handleExport() {
-        const header = ["Date", "Vendor", "Description", "Category", "Status", "Amount", "Paid with", "Receipt"];
-        const rows = [...inRange]
-            .sort((a, b) => a.date.getTime() - b.date.getTime())
-            .map((e) => [
-                toDateInput(e.date),
-                e.vendor.name,
-                e.description,
-                categoryLabels[e.category],
-                e.status,
-                e.amount.toFixed(2),
-                e.paidWith ?? "",
-                e.receiptUrl ? "Yes" : "No",
-            ]);
-        const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
-
-        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `expenses-${period}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
     }
 
     return (
@@ -145,21 +109,16 @@ export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
                         Keep the small things in order. Your future self will thank you.
                     </p>
                 </div>
-                <div className="flex shrink-0 gap-3">
-                    <button type="button" onClick={handleExport} className={secondaryButton}>
-                        <Download className="size-4" /> Export
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setFormOpen(true);
-                            setSaved(null);
-                        }}
-                        className={primaryButton}
-                    >
-                        <Plus className="size-4" /> Record expense
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setFormOpen(true);
+                        setSaved(null);
+                    }}
+                    className={`${primaryButton} shrink-0`}
+                >
+                    <Plus className="size-4" /> Record expense
+                </button>
             </div>
 
             {saved && (
@@ -175,21 +134,12 @@ export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
                 </p>
             )}
 
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-3 gap-6">
                 <StatCard label={spentLabel} value={spent} note={spentNote} highlight />
                 <StatCard
                     label="Unpaid bills"
                     value={sumAmounts(unpaid)}
                     note={unpaid.length > 0 ? `${plural(unpaid.length, "bill")} still to pay` : "All caught up. Nothing to pay."}
-                />
-                <StatCard
-                    label="Receipts attached"
-                    value={`${withReceipt} of ${inRange.length}`}
-                    note={
-                        missing === 0
-                            ? "Every expense has a receipt"
-                            : `${missing === 1 ? "One expense is" : `${missing} expenses are`} missing a receipt`
-                    }
                 />
                 <StatCard
                     label="Largest category"
@@ -215,7 +165,6 @@ export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
                     <div className="sticky top-8 col-span-4">
                         <ExpenseForm
                             vendors={vendors}
-                            paymentAccounts={paymentAccounts}
                             today={today}
                             onSave={(input) => void handleSave(input)}
                             onClose={() => setFormOpen(false)}

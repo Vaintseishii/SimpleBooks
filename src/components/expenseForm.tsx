@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, FileText, Trash2, Upload, X } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 import { primaryButton, secondaryButton } from "./buttonStyles";
 import { errorClass, fieldClass, labelClass } from "./fieldStyles";
 import {
@@ -14,26 +14,24 @@ import {
     type ExpenseInput,
 } from "~/lib/expenseDraft";
 import { categoryLabels, categoryOrder } from "~/lib/expenseSummary";
-import type { ExpenseCategory, ExpenseStatus, PaymentAccount, Vendor } from "~/lib/sampleExpenses";
+import type { ExpenseCategory, ExpenseStatus, Vendor } from "~/lib/sampleExpenses";
 
 type ExpenseFormProps = {
     vendors: Vendor[];
-    paymentAccounts: PaymentAccount[];
     today: Date;
     onSave: (input: ExpenseInput) => void;
     onClose: () => void;
 };
 
 const selectIcon = "pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-fg-secondary";
-const fileSize = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
 
 const statusOptions: { value: ExpenseStatus; label: string }[] = [
     { value: "PAID", label: "Paid" },
     { value: "UNPAID", label: "Unpaid bill" },
 ];
 
-export function ExpenseForm({ vendors, paymentAccounts, today, onSave, onClose }: ExpenseFormProps) {
-    const [draft, setDraft] = useState<ExpenseDraft>(() => createExpenseDraft(today, paymentAccounts[0]?.label ?? ""));
+export function ExpenseForm({ vendors, today, onSave, onClose }: ExpenseFormProps) {
+    const [draft, setDraft] = useState<ExpenseDraft>(() => createExpenseDraft(today));
     const [errors, setErrors] = useState<ExpenseDraftErrors>({});
 
     const vendorName = draft.vendorName.trim();
@@ -49,11 +47,7 @@ export function ExpenseForm({ vendors, paymentAccounts, today, onSave, onClose }
         setErrors(found);
         if (Object.values(found).some(Boolean)) return;
 
-        const input = toExpenseInput(draft, vendors);
-        // TODO: swap for the real mutation once Joseph's expense router lands, e.g.
-        // createExpense.mutate(input) with api.expense.create.useMutation()
-        console.info("Expense ready to save", input);
-        onSave(input);
+        onSave(toExpenseInput(draft, vendors));
     }
 
     return (
@@ -80,42 +74,6 @@ export function ExpenseForm({ vendors, paymentAccounts, today, onSave, onClose }
                 >
                     <X className="size-5" />
                 </button>
-            </div>
-
-            {/* receipt */}
-            <div className="mt-6 rounded-md border border-border-default bg-sunken p-4">
-                {draft.receipt ? (
-                    <div className="flex items-center gap-3">
-                        <FileText className="size-5 shrink-0 text-fg-secondary" />
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate text-label-m">{draft.receipt.name}</p>
-                            <p className="text-caption text-fg-tertiary">{fileSize(draft.receipt.size)} · Receipt attached</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => update("receipt", null)}
-                            aria-label="Remove receipt"
-                            className="rounded-sm p-1 text-fg-tertiary transition-colors duration-120 ease-out hover:bg-surface hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus"
-                        >
-                            <Trash2 className="size-4" />
-                        </button>
-                    </div>
-                ) : (
-                    <label className="flex cursor-pointer flex-col items-center gap-2 rounded-sm py-4 text-center focus-within:outline-2 focus-within:outline-border-focus">
-                        <Upload className="size-5 text-fg-secondary" />
-                        <span className="text-label-m text-fg-accent">Attach a receipt</span>
-                        <span className="text-caption text-fg-tertiary">PDF, PNG or JPG. Optional, but future you will be glad.</span>
-                        <input
-                            type="file"
-                            accept="application/pdf,image/png,image/jpeg"
-                            className="sr-only"
-                            onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) update("receipt", { name: file.name, size: file.size });
-                            }}
-                        />
-                    </label>
-                )}
             </div>
 
             {/* vendor: pick an existing one or type a new name */}
@@ -228,24 +186,7 @@ export function ExpenseForm({ vendors, paymentAccounts, today, onSave, onClose }
                 </div>
             </div>
 
-            {draft.status === "PAID" ? (
-                <div className="mt-6">
-                    <label htmlFor="paidWith" className={labelClass}>Paid with</label>
-                    <div className="relative">
-                        <select
-                            id="paidWith"
-                            value={draft.paidWith}
-                            onChange={(e) => update("paidWith", e.target.value)}
-                            className={`${fieldClass()} appearance-none pr-10`}
-                        >
-                            {paymentAccounts.map((a) => (
-                                <option key={a.id} value={a.label}>{a.label}</option>
-                            ))}
-                        </select>
-                        <ChevronDown className={selectIcon} />
-                    </div>
-                </div>
-            ) : (
+            {draft.status === "UNPAID" && (
                 <p className="mt-4 rounded-md bg-status-unpaid px-4 py-3 text-body-s text-status-unpaid-fg">
                     This goes into your unpaid bills until you mark it paid.
                 </p>

@@ -1,16 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Download, Info, Plus } from "lucide-react";
+import { CheckCircle2, Info, Plus } from "lucide-react";
 import { StatCard } from "./statCard";
 import { BalancesTable } from "./balancesTable";
-import { AgingBuckets } from "./agingBuckets";
 import { BalanceSummary } from "./balanceSummary";
-import { ReminderComposer, type ReminderInput } from "./reminderComposer";
 import { RecordPaymentForm, type PaymentInput } from "./recordPaymentForm";
-import { primaryButton, secondaryButton } from "./buttonStyles";
+import { primaryButton } from "./buttonStyles";
 import { usd } from "~/lib/format";
-import { toDateInput } from "~/lib/expenseDraft";
 import { sumAmounts } from "~/lib/expenseSummary";
 import {
     clientCount,
@@ -20,34 +17,22 @@ import {
     sumBalances,
 } from "~/lib/receivables";
 import type { Invoice } from "~/lib/sampleInvoices";
-import type { PaymentMethod } from "~/lib/sampleBilling";
 import { api } from "~/trpc/react";
 
-type Panel = { kind: "reminder"; invoiceId: string } | { kind: "payment"; invoiceId: string | null } | null;
-
-const csvCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
-
-type WhoOwesYouViewProps = {
-    paymentMethods: PaymentMethod[];
-    sender: string;
-};
-
-export function WhoOwesYouView({ paymentMethods, sender }: WhoOwesYouViewProps) {
+export function WhoOwesYouView() {
     const [today] = useState(() => new Date());
-    const [lastReminders, setLastReminders] = useState<Record<string, Date>>({}); // reminders sent on this visit
+    const [paymentOpen, setPaymentOpen] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const utils = api.useUtils();
     const invoiceList = api.invoices.list.useQuery({ status: "SENT", take: 100 }); // sent = not paid yet
     const billList = api.expenses.list.useQuery({ status: "UNPAID", take: 100 });
-    const clientList = api.clients.list.useQuery({ take: 100 });
     const createPayment = api.invoices.createPayment.useMutation();
 
     const rows = invoiceList.data?.invoices ?? [];
-    const clients = clientList.data ?? [];
     const unpaidBills = billList.data?.expenses ?? [];
-    // Reshape the router rows into the Invoice type the table, buckets and forms already use
+    // Reshape the router rows into the Invoice type the table and form already use
     const invoices: Invoice[] = rows.map((inv) => ({
         id: inv.id,
         number: inv.number,
@@ -63,25 +48,8 @@ export function WhoOwesYouView({ paymentMethods, sender }: WhoOwesYouViewProps) 
     const balances = outstandingBalances(invoices, today);
     const overdue = balances.filter((b) => b.overdue);
     const notYetDue = balances.filter((b) => !b.overdue);
-
-    // Until you pick something, open on the oldest overdue invoice, like the design.
-    // undefined = not picked yet (the data loads after the first render).
-    const [pickedPanel, setPanel] = useState<Panel | undefined>(undefined);
-    const oldest = sortBalances(overdue, "oldest")[0];
-    const panel: Panel =
-        pickedPanel !== undefined ? pickedPanel : oldest ? { kind: "reminder", invoiceId: oldest.invoice.id } : null;
-
-    const reminderBalance = panel?.kind === "reminder" ? balances.find((b) => b.invoice.id === panel.invoiceId) : undefined;
     const oldestOverdue = Math.max(0, ...overdue.map((b) => b.daysOverdue));
     const furthestDue = Math.max(0, ...notYetDue.map((b) => b.daysUntilDue));
-    const showPanel = panel?.kind === "payment" || reminderBalance !== undefined;
-
-    function handleSendReminder(input: ReminderInput) {
-        // TODO: api.invoice.sendReminder.mutate(input) once there's an email/reminder router
-        console.info("Reminder ready to send", input);
-        setLastReminders((prev) => ({ ...prev, [input.invoiceId]: today }));
-        setNotice(`Reminder ready for ${input.to}. (Reminders aren’t emailed yet.)`);
-    }
 
     async function handleRecordPayment(input: PaymentInput) {
         setError(null);
@@ -90,33 +58,11 @@ export function WhoOwesYouView({ paymentMethods, sender }: WhoOwesYouViewProps) 
             // A full payment, so the router marks the invoice PAID and it drops off this page
             await createPayment.mutateAsync({ invoiceId: input.invoiceId, amount: input.amount, date: input.paidAt });
             await utils.invoices.list.invalidate();
-            setPanel(null);
+            setPaymentOpen(false);
             if (invoice) setNotice(`${invoice.client.name} paid ${invoice.number} · ${usd.format(input.amount)}. Marked as paid.`);
         } catch {
             setError("Couldn’t record that payment. Please try again.");
         }
-    }
-
-    function handleExport() {
-        const header = ["Client", "Invoice", "Project", "Issued", "Due date", "Status", "Days overdue", "Balance"];
-        const rows = sortBalances(balances, "oldest").map((b) => [
-            b.invoice.client.name,
-            b.invoice.number,
-            b.invoice.projectTitle,
-            toDateInput(b.invoice.issueDate),
-            toDateInput(b.invoice.dueDate),
-            b.overdue ? "OVERDUE" : "SENT",
-            String(b.daysOverdue),
-            b.amount.toFixed(2),
-        ]);
-        const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
-
-        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `balances-${toDateInput(today)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
     }
 
     return (
@@ -129,22 +75,17 @@ export function WhoOwesYouView({ paymentMethods, sender }: WhoOwesYouViewProps) 
                         Good client relationships. Healthy cash flow. Keep both in view.
                     </p>
                 </div>
-                <div className="flex shrink-0 gap-3">
-                    <button type="button" onClick={handleExport} className={secondaryButton}>
-                        <Download className="size-4" /> Export balances
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setPanel({ kind: "payment", invoiceId: reminderBalance?.invoice.id ?? null });
-                            setNotice(null);
-                            setError(null);
-                        }}
-                        className={primaryButton}
-                    >
-                        <Plus className="size-4" /> Record payment
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setPaymentOpen(true);
+                        setNotice(null);
+                        setError(null);
+                    }}
+                    className={`${primaryButton} shrink-0`}
+                >
+                    <Plus className="size-4" /> Record payment
+                </button>
             </div>
 
             {notice && (
@@ -189,16 +130,8 @@ export function WhoOwesYouView({ paymentMethods, sender }: WhoOwesYouViewProps) 
             </div>
 
             <div className="grid grid-cols-12 items-start gap-6">
-                <div className={`flex flex-col gap-6 ${showPanel ? "col-span-8" : "col-span-12"}`}>
-                    <BalancesTable
-                        balances={balances}
-                        selectedId={reminderBalance?.invoice.id ?? null}
-                        onRemind={(invoiceId) => {
-                            setPanel({ kind: "reminder", invoiceId });
-                            setNotice(null);
-                        }}
-                    />
-                    <AgingBuckets balances={balances} today={today} />
+                <div className={`flex flex-col gap-6 ${paymentOpen ? "col-span-8" : "col-span-12"}`}>
+                    <BalancesTable balances={balances} />
                     <BalanceSummary
                         pendingIncome={sumBalances(balances)}
                         invoiceCount={balances.length}
@@ -207,34 +140,15 @@ export function WhoOwesYouView({ paymentMethods, sender }: WhoOwesYouViewProps) 
                     />
                 </div>
 
-                {showPanel && (
+                {paymentOpen && (
                     <div className="sticky top-8 col-span-4">
-                        {panel?.kind === "payment" ? (
-                            <RecordPaymentForm
-                                balances={sortBalances(balances, "oldest")}
-                                initialInvoiceId={panel.invoiceId}
-                                paymentMethods={paymentMethods}
-                                today={today}
-                                onSave={handleRecordPayment}
-                                onClose={() => setPanel(null)}
-                            />
-                        ) : (
-                            reminderBalance && (
-                                <ReminderComposer
-                                    key={reminderBalance.invoice.id}
-                                    balance={reminderBalance}
-                                    contact={clients.find((c) => c.name === reminderBalance.invoice.client.name)}
-                                    sender={sender}
-                                    lastSentAt={
-                                        lastReminders[reminderBalance.invoice.id] ??
-                                        rows.find((r) => r.id === reminderBalance.invoice.id)?.lastReminderAt ??
-                                        null
-                                    }
-                                    onSend={handleSendReminder}
-                                    onClose={() => setPanel(null)}
-                                />
-                            )
-                        )}
+                        <RecordPaymentForm
+                            balances={sortBalances(balances, "oldest")}
+                            initialInvoiceId={null}
+                            today={today}
+                            onSave={handleRecordPayment}
+                            onClose={() => setPaymentOpen(false)}
+                        />
                     </div>
                 )}
             </div>
@@ -246,4 +160,3 @@ export function WhoOwesYouView({ paymentMethods, sender }: WhoOwesYouViewProps) 
         </div>
     );
 }
-

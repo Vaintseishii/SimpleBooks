@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import NextLink from "next/link";
-import { ArrowUpRight, CheckCircle2, ChevronDown, Download, Eye, Mail, Plus } from "lucide-react";
+import { ArrowUpRight, CheckCircle2, ChevronDown, Eye, Mail } from "lucide-react";
 import { StatusPill } from "./statusPill";
 import { LineItemsEditor } from "./lineItemsEditor";
 import { InvoicePreview } from "./invoicePreview";
@@ -19,12 +19,11 @@ import {
     type InvoiceDraft,
 } from "~/lib/invoiceDraft";
 import type { InvoiceStatus } from "~/lib/sampleInvoices";
-import type { ClientOption, PaymentMethod, WorkspaceInfo } from "~/lib/sampleBilling";
+import type { ClientOption, WorkspaceInfo } from "~/lib/sampleBilling";
 import type { InvoiceInput } from "~/lib/invoiceDraft";
 
 type InvoiceFormProps = {
     clients: ClientOption[];
-    paymentMethods: PaymentMethod[];
     workspace: WorkspaceInfo;
     existingNumbers: string[];
     today: Date;
@@ -36,7 +35,6 @@ const selectIcon = "pointer-events-none absolute top-1/2 right-4 size-4 -transla
 
 export function InvoiceForm({
     clients,
-    paymentMethods,
     workspace,
     existingNumbers,
     today,
@@ -47,16 +45,13 @@ export function InvoiceForm({
         createDraft({
             today,
             number: nextInvoiceNumber(existingNumbers),
-            paymentMethod: paymentMethods[0]?.id ?? "",
         }),
     );
     const [errors, setErrors] = useState<DraftErrors>({});
-    const [showAdjustments, setShowAdjustments] = useState(false);
     const [saved, setSaved] = useState<{ status: InvoiceStatus; number: string } | null>(null);
 
     const totals = getTotals(draft);
     const client = clients.find((c) => c.id === draft.clientId);
-    const paymentMethod = paymentMethods.find((m) => m.id === draft.paymentMethod);
 
     function update<K extends keyof InvoiceDraft>(key: K, value: InvoiceDraft[K]) {
         setDraft((prev) => ({ ...prev, [key]: value }));
@@ -213,115 +208,24 @@ export function InvoiceForm({
 
                         <LineItemsEditor items={draft.items} error={errors.items} onChange={(items) => update("items", items)} />
 
-                        {showAdjustments && (
-                            <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border-subtle pt-6">
-                                <div>
-                                    <label htmlFor="discount" className={labelClass}>Discount ($)</label>
-                                    <input
-                                        id="discount"
-                                        inputMode="decimal"
-                                        value={draft.discount}
-                                        onChange={(e) => update("discount", e.target.value.replace(/[^\d.,]/g, ""))}
-                                        placeholder="0.00"
-                                        className={`${fieldClass()} text-right font-mono`}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="taxRate" className={labelClass}>Tax rate (%)</label>
-                                    <input
-                                        id="taxRate"
-                                        inputMode="decimal"
-                                        value={draft.taxRate}
-                                        onChange={(e) => update("taxRate", e.target.value.replace(/[^\d.]/g, ""))}
-                                        placeholder="0"
-                                        className={`${fieldClass()} text-right font-mono`}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="mt-6 flex items-center justify-between border-t border-border-subtle pt-6">
-                            {showAdjustments ? (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowAdjustments(false);
-                                        setDraft((prev) => ({ ...prev, discount: "", taxRate: "" }));
-                                    }}
-                                    className="rounded-xs text-label-m text-fg-secondary hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus"
-                                >
-                                    Remove discount and tax
-                                </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={() => setShowAdjustments(true)}
-                                    className="inline-flex items-center gap-1 rounded-xs text-label-m text-fg-accent hover:underline focus-visible:outline-2 focus-visible:outline-border-focus"
-                                >
-                                    <Plus className="size-3.5" /> Add discount or tax
-                                </button>
-                            )}
+                        <div className="mt-6 flex items-center justify-end border-t border-border-subtle pt-6">
                             <p className="flex items-baseline gap-4">
                                 <span className="text-body-m text-fg-secondary">Total</span>
                                 <span className="font-mono text-num-l">{usd.format(totals.total)}</span>
                             </p>
                         </div>
                     </section>
-
-                    <section className={cardClass}>
-                        <h2 className="text-title-card">The finishing touches</h2>
-
-                        <div className="mt-6">
-                            <label htmlFor="paymentMethod" className={labelClass}>Payment method</label>
-                            <div className="relative">
-                                <select
-                                    id="paymentMethod"
-                                    value={draft.paymentMethod}
-                                    onChange={(e) => update("paymentMethod", e.target.value)}
-                                    className={`${fieldClass()} appearance-none pr-10`}
-                                >
-                                    {paymentMethods.map((m) => (
-                                        <option key={m.id} value={m.id}>{m.label}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className={selectIcon} />
-                            </div>
-                        </div>
-
-                        <div className="mt-6">
-                            <label htmlFor="notesToClient" className={labelClass}>Note to your client</label>
-                            <textarea
-                                id="notesToClient"
-                                rows={3}
-                                value={draft.notesToClient}
-                                onChange={(e) => update("notesToClient", e.target.value)}
-                                placeholder={`Thank you for trusting ${workspace.name} with your brand. It's a pleasure working with you.`}
-                                className={`${fieldClass()} h-auto resize-none py-3`}
-                            />
-                        </div>
-                    </section>
                 </div>
 
                 {/* right: live preview */}
                 <aside className="sticky top-8 col-span-5">
-                    <div className="mb-4 flex items-center justify-between">
-                        <p className="flex items-center gap-2 text-label-m text-fg-primary">
-                            <Eye className="size-4 text-fg-secondary" /> Live preview
-                        </p>
-                        <button
-                            type="button"
-                            disabled
-                            title="PDF export is coming soon"
-                            className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-label-m text-fg-disabled"
-                        >
-                            <Download className="size-4" /> Download PDF
-                        </button>
-                    </div>
+                    <p className="mb-4 flex items-center gap-2 text-label-m text-fg-primary">
+                        <Eye className="size-4 text-fg-secondary" /> Live preview
+                    </p>
                     <InvoicePreview
                         draft={draft}
                         totals={totals}
                         client={client}
-                        paymentMethod={paymentMethod}
                         workspace={workspace}
                     />
                 </aside>

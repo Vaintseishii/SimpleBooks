@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import NextLink from "next/link";
-import { ArrowUpRight, ArrowDownWideNarrow, ChevronDown, Mail } from "lucide-react";
+import { ArrowUpRight, ArrowDownWideNarrow, ChevronDown } from "lucide-react";
 import { usd } from "~/lib/format";
 import { dueLabel, sortBalances, sumBalances, type Balance, type SortOrder } from "~/lib/receivables";
 
@@ -23,11 +23,9 @@ const actionClass =
 
 type BalancesTableProps = {
     balances: Balance[];
-    selectedId: string | null;
-    onRemind: (invoiceId: string) => void;
 };
 
-export function BalancesTable({ balances, selectedId, onRemind }: BalancesTableProps) {
+export function BalancesTable({ balances }: BalancesTableProps) {
     const [tab, setTab] = useState<Tab>("all");
     const [order, setOrder] = useState<SortOrder>("oldest");
 
@@ -90,14 +88,9 @@ export function BalancesTable({ balances, selectedId, onRemind }: BalancesTableP
                 </thead>
                 <tbody>
                     {visible.map((b) => {
-                        const selected = b.invoice.id === selectedId;
                         return (
-                            <tr
-                                key={b.invoice.id}
-                                aria-selected={selected}
-                                className={`h-16 border-t border-border-subtle ${selected ? "bg-accent-soft" : ""}`}
-                            >
-                                <td className={`pl-6 ${selected ? "shadow-[inset_3px_0_0_var(--color-accent)]" : ""}`}>
+                            <tr key={b.invoice.id} className="h-16 border-t border-border-subtle">
+                                <td className="pl-6">
                                     <div className="flex items-center gap-3 py-3">
                                         <span
                                             aria-hidden
@@ -117,21 +110,9 @@ export function BalancesTable({ balances, selectedId, onRemind }: BalancesTableP
                                 <td className="text-body-m text-fg-secondary">{rowDate.format(b.invoice.dueDate)}</td>
                                 <td className="text-right font-mono text-num-m text-fg-primary">{usd.format(b.amount)}</td>
                                 <td className="pr-6 text-right">
-                                    {b.overdue ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => onRemind(b.invoice.id)}
-                                            aria-label={`Remind ${b.invoice.client.name} about ${b.invoice.number}`}
-                                            className={actionClass}
-                                        >
-                                            <Mail className="size-4" /> Remind
-                                        </button>
-                                    ) : (
-                                        // No invoice detail page yet, so this opens the Invoices list
-                                        <NextLink href="/invoices" className={actionClass}>
-                                            <ArrowUpRight className="size-4" /> View invoice
-                                        </NextLink>
-                                    )}
+                                    <NextLink href={`/invoices/${b.invoice.id}`} className={actionClass}>
+                                        <ArrowUpRight className="size-4" /> View invoice
+                                    </NextLink>
                                 </td>
                             </tr>
                         );

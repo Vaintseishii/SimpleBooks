@@ -2,9 +2,6 @@ import NextLink from "next/link";
 import { Plus } from "lucide-react";
 import { auth } from "~/auth";
 import { OverviewStats } from "~/components/overviewStats";
-import { CashFlowChart } from "~/components/cashFlowChart";
-import { FollowUpCard } from "~/components/followUpCard";
-import { InvoiceActivity } from "~/components/invoiceActivity";
 import { primaryButton, secondaryButton } from "~/components/buttonStyles";
 
 export default async function Overview() {
@@ -46,15 +43,6 @@ export default async function Overview() {
             </div>
 
             <OverviewStats />
-
-            <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2">
-                    <CashFlowChart />
-                </div>
-                <FollowUpCard />
-            </div>
-
-            <InvoiceActivity />
         </div>
     );
 }

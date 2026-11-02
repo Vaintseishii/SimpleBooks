@@ -11,13 +11,12 @@ import {
     type InvoiceDraft,
     type Totals,
 } from "~/lib/invoiceDraft";
-import type { ClientOption, PaymentMethod, WorkspaceInfo } from "~/lib/sampleBilling";
+import type { ClientOption, WorkspaceInfo } from "~/lib/sampleBilling";
 
 type InvoicePreviewProps = {
     draft: InvoiceDraft;
     totals: Totals;
     client: ClientOption | undefined;
-    paymentMethod: PaymentMethod | undefined;
     workspace: WorkspaceInfo;
 };
 
@@ -26,9 +25,7 @@ const formatQty = (value: string) => {
     return Number.isInteger(n) ? String(n) : n.toFixed(2);
 };
 
-const formatRate = (n: number) => `${n.toFixed(n % 1 === 0 ? 0 : 2)}%`;
-
-export function InvoicePreview({ draft, totals, client, paymentMethod, workspace }: InvoicePreviewProps) {
+export function InvoicePreview({ draft, totals, client, workspace }: InvoicePreviewProps) {
     const issue = fromInputDate(draft.issueDate);
     const due = fromInputDate(draft.dueDate);
     const terms = issue && due && due >= issue ? daysBetween(issue, due) : null;
@@ -119,40 +116,11 @@ export function InvoicePreview({ draft, totals, client, paymentMethod, workspace
                     </tbody>
                 </table>
 
-                {/* totals */}
-                <dl className="mt-6 flex flex-col gap-3 text-body-m">
-                    <div className="flex justify-between">
-                        <dt>Subtotal</dt>
-                        <dd className="font-mono text-num-m text-fg-primary">{usd.format(totals.subtotal)}</dd>
-                    </div>
-                    {totals.discount > 0 && (
-                        <div className="flex justify-between">
-                            <dt>Discount</dt>
-                            <dd className="font-mono text-num-m text-fg-primary">−{usd.format(totals.discount)}</dd>
-                        </div>
-                    )}
-                    <div className="flex justify-between">
-                        <dt>Tax ({formatRate(totals.taxRate)})</dt>
-                        <dd className="font-mono text-num-m text-fg-primary">{usd.format(totals.tax)}</dd>
-                    </div>
-                </dl>
-                <div className="mt-4 flex items-center justify-between rounded-md bg-accent-soft px-5 py-4">
+                {/* total */}
+                <div className="mt-6 flex items-center justify-between rounded-md bg-accent-soft px-5 py-4">
                     <span className="text-body-m text-fg-primary">Total due · {workspace.currency}</span>
                     <span className="font-mono text-num-l text-fg-accent">{usd.format(totals.total)}</span>
                 </div>
-
-                {/* how to pay */}
-                {paymentMethod && (
-                    <div className="mt-8 text-caption">
-                        <p className="text-overline uppercase text-fg-primary">{paymentMethod.title}</p>
-                        <p className="mt-2">{paymentMethod.detail}</p>
-                        <p>Please include {number} as your payment reference.</p>
-                    </div>
-                )}
-
-                {draft.notesToClient.trim() && (
-                    <p className="mt-6 whitespace-pre-line text-caption">{draft.notesToClient.trim()}</p>
-                )}
             </div>
 
             <p className="mt-4 flex items-center justify-center gap-2 text-caption text-fg-tertiary">

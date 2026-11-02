@@ -1,5 +1,4 @@
 import { getDisplayStatus } from "./invoiceStatus";
-import { usd } from "./format";
 import type { Invoice } from "./sampleInvoices";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -58,47 +57,3 @@ export function sortBalances(balances: Balance[], order: SortOrder) {
 }
 
 export const clientCount = (balances: Balance[]) => new Set(balances.map((b) => b.invoice.client.name)).size;
-
-// ---------- Aging: how long has it been? ----------
-
-export type AgingBucket = {
-    key: "current" | "1-30" | "31+";
-    label: string;
-    balances: Balance[];
-    total: number;
-};
-
-export function agingBuckets(balances: Balance[]): AgingBucket[] {
-    const buckets: Omit<AgingBucket, "total">[] = [
-        { key: "current", label: "Not yet due", balances: balances.filter((b) => !b.overdue) },
-        { key: "1-30", label: "1–30 days overdue", balances: balances.filter((b) => b.overdue && b.daysOverdue <= 30) },
-        { key: "31+", label: "31+ days overdue", balances: balances.filter((b) => b.overdue && b.daysOverdue > 30) },
-    ];
-    return buckets.map((bucket) => ({ ...bucket, total: sumBalances(bucket.balances) }));
-}
-
-// ---------- Reminder email ----------
-
-export const invoiceLinkToken = "[View invoice]";
-
-const longDate = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" });
-
-export function reminderTemplate(balance: Balance, contactName: string | null, sender: string) {
-    const { invoice } = balance;
-    const greeting = contactName ? `Hi ${contactName.split(" ")[0]},` : "Hi there,";
-    const when = balance.overdue
-        ? `was due on ${longDate.format(invoice.dueDate)}`
-        : `is due on ${longDate.format(invoice.dueDate)}`;
-
-    return {
-        subject: `A quick reminder: invoice ${invoice.number}`,
-        body: [
-            greeting,
-            `Just a friendly reminder that invoice ${invoice.number} for ${usd.format(balance.amount)} ${when}.`,
-            "You can find your invoice and payment details at the link below.",
-            invoiceLinkToken,
-            "If you’ve already sent payment, thank you! Please disregard this reminder.",
-            `Warmly,\n${sender}`,
-        ].join("\n\n"),
-    };
-}

@@ -17,14 +17,6 @@ export type WorkspaceInfo = {
     currency: string;
 };
 
-// Saved as Invoice.paymentMethod (a plain string) when the invoice is created
-export type PaymentMethod = {
-    id: string;
-    label: string; // what the select shows
-    title: string; // heading on the invoice
-    detail: string; // line under the heading
-};
-
 export const sampleWorkspace: WorkspaceInfo = {
     name: "Alder Studio",
     tagline: "Design for thoughtful businesses.",
@@ -41,10 +33,4 @@ export const sampleClients: ClientOption[] = [
     { id: "c5", name: "Willow Home", contactName: "Hannah Lee", email: "hello@willowhome.shop", address: "Austin, Texas" },
     { id: "c6", name: "Arc Architecture", contactName: "Marcus Reed", email: "office@arc-architecture.com", address: "Chicago, Illinois" },
     { id: "c7", name: "Kin Collective", contactName: "Sofia Diaz", email: "team@kincollective.org", address: "Portland, Oregon" },
-];
-
-export const samplePaymentMethods: PaymentMethod[] = [
-    { id: "bank", label: "Bank transfer · Checking •• 4821", title: "Payment by bank transfer", detail: "Alder Studio · Checking ending 4821" },
-    { id: "card", label: "Card payment · Online link", title: "Payment by card", detail: "Pay securely with the card link in your invoice email" },
-    { id: "check", label: "Check · Mailed", title: "Payment by check", detail: "Make checks payable to Alder Studio, Portland, Oregon" },
 ];

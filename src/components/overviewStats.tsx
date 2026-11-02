@@ -8,7 +8,6 @@ import { api } from "~/trpc/react";
 
 export function OverviewStats() {
     const { data: pnl } = api.reports.profitAndLoss.useQuery({ period: "thisMonth" });
-    // Same query as the sidebar badge, so they share one cached request
     const { data: sent } = api.invoices.list.useQuery({ status: "SENT", take: 100 }); // sent = not paid yet
 
     const today = new Date();
