@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import NextLink from "next/link";
 import {
     ArrowUpRight,
     CheckCircle2,
     CircleDollarSign,
-    Edit,
     Eye,
     Mail,
     MoreHorizontal,
@@ -36,7 +33,6 @@ export function InvoiceDetail({
     invoice: InvoiceWithRelations;
     onClose: () => void;
 }) {
-    const router = useRouter();
     const utils = api.useUtils();
 
     const [showActions, setShowActions] = useState(false);
@@ -155,12 +151,6 @@ export function InvoiceDetail({
                                         )}
                                     </>
                                 )}
-                                <button
-                                    onClick={() => router.push(`/invoices/${invoice.id}/edit`)}
-                                    className="flex w-full items-center gap-2 rounded px-3 py-2 text-label-m text-fg-primary hover:bg-sunken transition-colors"
-                                >
-                                    <Edit className="size-4" /> Edit invoice
-                                </button>
                                 <hr className="my-1 border-border-subtle" />
                                 <button
                                     onClick={handleDelete}
@@ -171,10 +161,6 @@ export function InvoiceDetail({
                             </div>
                         )}
                     </div>
-
-                    <NextLink href={`/invoices/${invoice.id}/edit`} className={secondaryButton}>
-                        <Edit className="size-4 mr-2" /> Edit
-                    </NextLink>
 
                     {canRecordPayment && (
                         <button onClick={() => setShowRecordPayment(true)} className={primaryButton}>
