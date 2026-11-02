@@ -6,7 +6,6 @@ import { InvoiceForm } from "~/components/invoiceForm";
 import type { RouterOutputs } from "~/trpc/react";
 
 type ClientOption = RouterOutputs["clients"]["list"][number];
-type PaymentMethod = { id: string; label: string; title: string; detail: string };
 type WorkspaceInfo = { name: string; tagline: string | null; address: string | null; email: string | null; currency: string };
 
 export function NewInvoiceClient() {
@@ -44,19 +43,9 @@ export function NewInvoiceClient() {
         currency: "USD",
     };
 
-    const paymentMethods: PaymentMethod[] = [
-        { id: "bank-transfer", label: "Bank Transfer", title: "Payment by bank transfer", detail: "SimpleBooks · Checking account" },
-        { id: "stripe", label: "Stripe", title: "Payment by card", detail: "Pay securely with the card link in your invoice email" },
-        { id: "paypal", label: "PayPal", title: "Payment by PayPal", detail: "Pay securely with PayPal" },
-        { id: "check", label: "Check", title: "Payment by check", detail: "Make checks payable to SimpleBooks" },
-        { id: "cash", label: "Cash", title: "Payment by cash", detail: "Cash payment" },
-        { id: "other", label: "Other", title: "Other payment method", detail: "Custom payment arrangement" },
-    ];
-
     return (
         <InvoiceForm
             clients={clients}
-            paymentMethods={paymentMethods}
             workspace={workspace}
             existingNumbers={existingNumbers}
             today={today}

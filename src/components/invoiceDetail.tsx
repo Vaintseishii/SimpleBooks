@@ -82,12 +82,6 @@ export function InvoiceDetail({
         });
     }
 
-    function handleSendReminder() {
-        // TODO: Implement reminder sending
-        console.log("Send reminder for", invoice.number);
-        setShowActions(false);
-    }
-
     function handleMarkAsSent() {
         updateInvoice.mutate({ id: invoice.id, status: "SENT" });
         setShowActions(false);
@@ -141,12 +135,6 @@ export function InvoiceDetail({
                         </button>
                         {showActions && (
                             <div className="absolute right-0 top-full mt-1 rounded-lg border border-border-default bg-surface shadow-lg p-2 min-w-[180px] z-10">
-                                <button
-                                    onClick={handleSendReminder}
-                                    className="flex w-full items-center gap-2 rounded px-3 py-2 text-label-m text-fg-primary hover:bg-sunken transition-colors"
-                                >
-                                    <Send className="size-4" /> Send reminder
-                                </button>
                                 {!isPaid && (
                                     <>
                                         {canSend && (
@@ -469,13 +457,6 @@ export function InvoiceDetail({
                             {balance > 0 && (
                                 <p className="mt-2 text-body-m text-fg-primary">Balance due: <span className="font-mono">{usd.format(balance)}</span></p>
                             )}
-                        </div>
-                    </section>
-
-                    <section className={cardClass}>
-                        <div className="p-6">
-                            <p className="text-body-m text-fg-secondary">Payment method</p>
-                            <p className="mt-1 text-body-m text-fg-primary">{invoice.paymentMethod ?? "—"}</p>
                         </div>
                     </section>
 

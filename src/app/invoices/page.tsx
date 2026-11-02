@@ -6,7 +6,6 @@ import { Info, Plus } from "lucide-react";
 import { api } from "~/trpc/react";
 import { StatCard } from "~/components/statCard";
 import { InvoicesTable } from "~/components/invoicesTable";
-import { ExportButton } from "~/components/exportButton";
 import { primaryButton } from "~/components/buttonStyles";
 import { getDisplayStatus, sameMonth } from "~/lib/invoiceStatus";
 
@@ -56,7 +55,6 @@ function InvoicesPageContent() {
                         </p>
                     </div>
                     <div className="flex shrink-0 gap-3">
-                        <ExportButton />
                         <NextLink href="/invoices/new" className={primaryButton}>
                             <Plus className="size-4" /> New invoice
                         </NextLink>
@@ -111,7 +109,6 @@ function InvoicesPageContent() {
                     </p>
                 </div>
                 <div className="flex shrink-0 gap-3">
-                    <ExportButton />
                     <NextLink href="/invoices/new" className={primaryButton}>
                         <Plus className="size-4" /> New invoice
                     </NextLink>

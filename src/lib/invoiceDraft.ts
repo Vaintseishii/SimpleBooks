@@ -16,10 +16,6 @@ export type InvoiceDraft = {
     issueDate: string; // "YYYY-MM-DD" from the date input
     dueDate: string;
     items: LineItemDraft[];
-    discount: string;
-    taxRate: string; // percent, e.g. "8.5"
-    paymentMethod: string;
-    notesToClient: string;
 };
 
 export type DraftErrors = Partial<Record<keyof InvoiceDraft, string>>;
@@ -36,12 +32,7 @@ export type InvoiceInput = {
     sentAt: Date | null;
     currency: string;
     subtotal: number;
-    discount: number;
-    taxRate: number;
-    tax: number;
     total: number;
-    paymentMethod: string | null;
-    notesToClient: string | null;
     items: {
         description: string;
         subDescription?: string;
@@ -66,13 +57,10 @@ export const plainMoney = new Intl.NumberFormat("en-US", { minimumFractionDigits
 export const lineAmount = (item: Pick<LineItemDraft, "quantity" | "unitPrice">) =>
     roundMoney(toNumber(item.quantity) * toNumber(item.unitPrice));
 
-export function getTotals(draft: Pick<InvoiceDraft, "items" | "discount" | "taxRate">) {
+// No discount or tax, so the total is just the line items added up
+export function getTotals(draft: Pick<InvoiceDraft, "items">) {
     const subtotal = roundMoney(draft.items.reduce((total, item) => total + lineAmount(item), 0));
-    const discount = Math.min(roundMoney(Math.max(0, toNumber(draft.discount))), subtotal);
-    const taxRate = Math.min(Math.max(0, toNumber(draft.taxRate)), 100);
-    const tax = roundMoney(((subtotal - discount) * taxRate) / 100);
-    const total = roundMoney(subtotal - discount + tax);
-    return { subtotal, discount, taxRate, tax, total };
+    return { subtotal, total: subtotal };
 }
 
 export type Totals = ReturnType<typeof getTotals>;
@@ -113,17 +101,13 @@ export function nextInvoiceNumber(existing: string[]) {
 
 export const PAYMENT_TERMS_DAYS = 14; // Net 14
 
-export function createDraft(options: { today: Date; number: string; paymentMethod: string }): InvoiceDraft {
+export function createDraft(options: { today: Date; number: string }): InvoiceDraft {
     return {
         clientId: "",
         number: options.number,
         issueDate: toInputDate(options.today),
         dueDate: toInputDate(addDays(options.today, PAYMENT_TERMS_DAYS)),
         items: [emptyLineItem()],
-        discount: "",
-        taxRate: "",
-        paymentMethod: options.paymentMethod,
-        notesToClient: "",
     };
 }
 
@@ -169,8 +153,6 @@ export function toInvoiceInput(draft: InvoiceDraft, status: InvoiceStatus, curre
         sentAt: status === "SENT" ? now : null,
         currency,
         ...totals,
-        paymentMethod: draft.paymentMethod || null,
-        notesToClient: draft.notesToClient.trim() || null,
         items: draft.items.filter(isFilled).map((item) => ({
             description: item.description.trim(),
             subDescription: item.subDescription.trim() || undefined,

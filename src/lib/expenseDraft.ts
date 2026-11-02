@@ -1,4 +1,4 @@
-import type { Expense, ExpenseCategory, ExpenseStatus, Vendor } from "./sampleExpenses";
+import type { ExpenseCategory, ExpenseStatus, Vendor } from "./sampleExpenses";
 
 // What the Record expense form holds while you type (strings, like the inputs)
 export type ExpenseDraft = {
@@ -8,9 +8,7 @@ export type ExpenseDraft = {
     date: string; // YYYY-MM-DD from the date input
     category: ExpenseCategory;
     status: ExpenseStatus;
-    paidWith: string;
     notes: string;
-    receipt: { name: string; size: number } | null;
 };
 
 export type ExpenseDraftErrors = Partial<Record<"vendorName" | "description" | "amount" | "date", string>>;
@@ -24,9 +22,7 @@ export type ExpenseInput = {
     date: Date;
     category: ExpenseCategory;
     status: ExpenseStatus;
-    paidWith: string | null;
     notes: string | null;
-    receiptUrl: string | null;
 };
 
 export const toDateInput = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
@@ -48,7 +44,7 @@ export function parseAmount(value: string) {
 export const findVendor = (vendors: Vendor[], name: string) =>
     vendors.find((v) => v.name.toLowerCase() === name.trim().toLowerCase());
 
-export function createExpenseDraft(today: Date, paidWith: string): ExpenseDraft {
+export function createExpenseDraft(today: Date): ExpenseDraft {
     return {
         vendorName: "",
         description: "",
@@ -56,9 +52,7 @@ export function createExpenseDraft(today: Date, paidWith: string): ExpenseDraft 
         date: toDateInput(today),
         category: "SOFTWARE",
         status: "PAID",
-        paidWith,
         notes: "",
-        receipt: null,
     };
 }
 
@@ -86,16 +80,6 @@ export function toExpenseInput(draft: ExpenseDraft, vendors: Vendor[]): ExpenseI
         date: fromDateInput(draft.date) ?? new Date(),
         category: draft.category,
         status: draft.status,
-        paidWith: draft.status === "PAID" ? draft.paidWith : null,
         notes: draft.notes.trim() || null,
-        // TODO: upload the file and store its URL once receipt storage exists
-        receiptUrl: draft.receipt?.name ?? null,
     };
-}
-
-// Sample mode only: turns the input into a row for the list, so you can see it appear
-export function toSampleExpense(input: ExpenseInput, vendors: Vendor[]): Expense {
-    const { vendorId, newVendorName, ...fields } = input;
-    const vendor = vendors.find((v) => v.id === vendorId) ?? { id: `new-${Date.now()}`, name: newVendorName ?? "New vendor" };
-    return { id: `e-${Date.now()}`, vendor, ...fields };
 }

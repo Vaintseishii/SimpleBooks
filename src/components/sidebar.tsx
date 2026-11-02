@@ -1,8 +1,7 @@
 import Image from "next/image";
-import { LayoutGrid, FileText, Wallet } from "lucide-react";
+import { LayoutGrid, FileText, Users, Wallet } from "lucide-react";
 import { NavLink } from "./navLinks";
 import { SignOutButton } from "./signOutButton";
-import { WhoOwesYouLink } from "./whoOwesYouLink";
 
 interface SidebarProps {
     user: { name: string; detail: string; image?: string | null };
@@ -42,7 +41,9 @@ export function Sidebar({ user }: SidebarProps) {
                     Expenses
                 </NavLink>
 
-                <WhoOwesYouLink />
+                <NavLink href="/who-owes-you" icon={<Users className="size-4" />}>
+                    Who owes you
+                </NavLink>
             </nav>
 
             {/* user */}

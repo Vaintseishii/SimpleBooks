@@ -7,10 +7,9 @@ import { errorClass, fieldClass, labelClass } from "./fieldStyles";
 import { usd } from "~/lib/format";
 import { fromDateInput, toDateInput } from "~/lib/expenseDraft";
 import { dueLabel, type Balance } from "~/lib/receivables";
-import type { PaymentMethod } from "~/lib/sampleBilling";
 
-// What we'd send to the invoice router: mark the invoice PAID on paidAt
-export type PaymentInput = { invoiceId: string; amount: number; paidAt: Date; method: string; note: string | null };
+// What goes to the invoice router: a full payment marks the invoice PAID on paidAt
+export type PaymentInput = { invoiceId: string; amount: number; paidAt: Date };
 
 type Errors = Partial<Record<"invoiceId" | "date", string>>;
 
@@ -19,17 +18,14 @@ const selectIcon = "pointer-events-none absolute top-1/2 right-4 size-4 -transla
 type RecordPaymentFormProps = {
     balances: Balance[];
     initialInvoiceId: string | null;
-    paymentMethods: PaymentMethod[];
     today: Date;
     onSave: (input: PaymentInput) => void;
     onClose: () => void;
 };
 
-export function RecordPaymentForm({ balances, initialInvoiceId, paymentMethods, today, onSave, onClose }: RecordPaymentFormProps) {
+export function RecordPaymentForm({ balances, initialInvoiceId, today, onSave, onClose }: RecordPaymentFormProps) {
     const [invoiceId, setInvoiceId] = useState(initialInvoiceId ?? "");
     const [date, setDate] = useState(toDateInput(today));
-    const [method, setMethod] = useState(paymentMethods[0]?.label ?? "");
-    const [note, setNote] = useState("");
     const [errors, setErrors] = useState<Errors>({});
 
     const selected = balances.find((b) => b.invoice.id === invoiceId);
@@ -44,17 +40,7 @@ export function RecordPaymentForm({ balances, initialInvoiceId, paymentMethods, 
         setErrors(found);
         if (!selected || !paidAt || Object.values(found).some(Boolean)) return;
 
-        const input: PaymentInput = {
-            invoiceId: selected.invoice.id,
-            amount: selected.amount,
-            paidAt,
-            method,
-            note: note.trim() || null,
-        };
-        // TODO: swap for the real mutation once Joseph's invoice router lands, e.g.
-        // markPaid.mutate({ id: input.invoiceId, paidAt: input.paidAt }) with api.invoice.markPaid.useMutation()
-        console.info("Payment ready to save", input);
-        onSave(input);
+        onSave({ invoiceId: selected.invoice.id, amount: selected.amount, paidAt });
     }
 
     return (
@@ -133,37 +119,6 @@ export function RecordPaymentForm({ balances, initialInvoiceId, paymentMethods, 
                     className={fieldClass(Boolean(errors.date))}
                 />
                 {errors.date && <p className={errorClass}>{errors.date}</p>}
-            </div>
-
-            <div className="mt-6">
-                <label htmlFor="payment-method" className={labelClass}>Paid by</label>
-                <div className="relative">
-                    <select
-                        id="payment-method"
-                        value={method}
-                        onChange={(e) => setMethod(e.target.value)}
-                        className={`${fieldClass()} appearance-none pr-10`}
-                    >
-                        {paymentMethods.map((m) => (
-                            <option key={m.id} value={m.label}>{m.label}</option>
-                        ))}
-                    </select>
-                    <ChevronDown className={selectIcon} />
-                </div>
-            </div>
-
-            <div className="mt-6">
-                <label htmlFor="payment-note" className={labelClass}>
-                    Note <span className="text-fg-tertiary">(optional)</span>
-                </label>
-                <textarea
-                    id="payment-note"
-                    rows={3}
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="e.g. Reference number from the bank"
-                    className={`${fieldClass()} h-auto py-3`}
-                />
             </div>
 
             <p className="mt-6 text-caption text-fg-tertiary">

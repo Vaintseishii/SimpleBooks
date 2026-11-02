@@ -7,11 +7,9 @@ type NavLinkProps = {
     href: string;
     icon: React.ReactNode;
     children: React.ReactNode;
-    badge?: number; // e.g. overdue count, hidden when 0
-    badgeLabel?: string; // what the number means, for screen readers
 };
 
-export function NavLink({ href, icon, children, badge = 0, badgeLabel }: NavLinkProps) {
+export function NavLink({ href, icon, children }: NavLinkProps) {
     const pathname = usePathname();
     const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -27,12 +25,6 @@ export function NavLink({ href, icon, children, badge = 0, badgeLabel }: NavLink
         >
             {icon}
             {children}
-            {badge > 0 && (
-                <span className="ml-auto rounded-full border border-border-default bg-surface px-1.5 font-mono text-num-s text-fg-secondary">
-                    {badge}
-                    {badgeLabel && <span className="sr-only"> {badgeLabel}</span>}
-                </span>
-            )}
         </NextLink>
     );
 }

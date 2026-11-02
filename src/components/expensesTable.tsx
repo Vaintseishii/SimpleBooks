@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, ChevronDown, CircleAlert, ListFilter, Paperclip, Search } from "lucide-react";
+import { CalendarDays, ChevronDown, ListFilter, Search } from "lucide-react";
 import { StatusPill } from "./statusPill";
 import { usd } from "~/lib/format";
 import { categoryIcons, categoryLabels, categoryOrder, periodLabel, sumAmounts, type Period } from "~/lib/expenseSummary";
@@ -93,8 +93,7 @@ export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMar
                         <th className="font-medium">Date</th>
                         <th className="font-medium">Category</th>
                         <th className="font-medium">Status</th>
-                        <th className="text-right font-medium">Amount</th>
-                        <th className="w-14"><span className="sr-only">Receipt</span></th>
+                        <th className="pr-6 text-right font-medium">Amount</th>
                     </tr>
                 </thead>
                 <tbody className="text-body-m">
@@ -129,26 +128,13 @@ export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMar
                                         )}
                                     </div>
                                 </td>
-                                <td className="text-right font-mono text-num-m">{usd.format(e.amount)}</td>
-                                <td className="text-center">
-                                    {e.receiptUrl ? (
-                                        <span title={`Receipt attached: ${e.receiptUrl}`} className="inline-flex text-fg-tertiary">
-                                            <Paperclip className="size-4" />
-                                            <span className="sr-only">Receipt attached</span>
-                                        </span>
-                                    ) : (
-                                        <span title="Receipt missing" className="inline-flex text-status-unpaid-fg">
-                                            <CircleAlert className="size-4" />
-                                            <span className="sr-only">Receipt missing</span>
-                                        </span>
-                                    )}
-                                </td>
+                                <td className="pr-6 text-right font-mono text-num-m">{usd.format(e.amount)}</td>
                             </tr>
                         );
                     })}
                     {visible.length === 0 && (
                         <tr className="border-t border-border-subtle">
-                            <td colSpan={6} className="px-6 py-12 text-center text-body-m text-fg-secondary">
+                            <td colSpan={5} className="px-6 py-12 text-center text-body-m text-fg-secondary">
                                 {expenses.length === 0
                                     ? "No expenses in this period yet. Record one when it happens."
                                     : "No expenses match that. Try another search or filter."}
