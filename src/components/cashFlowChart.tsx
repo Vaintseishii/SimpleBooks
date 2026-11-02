@@ -1,19 +1,33 @@
+"use client";
+
 import { ChevronDown } from "lucide-react";
 import { secondaryButton } from "./buttonStyles";
+import { api } from "~/trpc/react";
 
-const data = [
-    { month: "May", moneyIn: 7400, moneyOut: 1500 },
-    { month: "Jun", moneyIn: 8800, moneyOut: 1800 },
-    { month: "Jul", moneyIn: 8100, moneyOut: 1400 },
-    { month: "Aug", moneyIn: 10700, moneyOut: 2100 },
-    { month: "Sep", moneyIn: 9400, moneyOut: 1700 },
-    { month: "Oct", moneyIn: 9800, moneyOut: 1284 },
-];
-const max = 12000;
-const ticks = [12000, 8000, 4000, 0];
-const pct = (value: number) => `${(value / max) * 100}%`;
+// Same "2026-11" keys the report router uses for interval "month"
+const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
 export function CashFlowChart() {
+    // The router only knows "thisMonth" and "yearToDate", so months before January show $0 for now
+    const { data: rows = [] } = api.reports.cashFlow.useQuery({ period: "yearToDate", interval: "month" });
+
+    const today = new Date();
+    const data = [5, 4, 3, 2, 1, 0].map((monthsAgo) => {
+        const d = new Date(today.getFullYear(), today.getMonth() - monthsAgo, 1);
+        const row = rows.find((r) => r.period === monthKey(d));
+        return {
+            month: d.toLocaleDateString("en-US", { month: "short" }),
+            moneyIn: row?.inflow ?? 0,
+            moneyOut: row?.outflow ?? 0,
+        };
+    });
+
+    // Round the top of the chart up to a multiple of $3k so the three gridlines land on whole thousands
+    const biggest = Math.max(0, ...data.map((d) => Math.max(d.moneyIn, d.moneyOut)));
+    const max = Math.max(3000, Math.ceil(biggest / 3000) * 3000);
+    const ticks = [max, (max * 2) / 3, max / 3, 0];
+    const pct = (value: number) => `${(value / max) * 100}%`;
+
     return (
         <div className="h-full rounded-lg border border-border-default bg-surface p-6 shadow-card">
             <div className="flex items-start justify-between">
@@ -57,7 +71,7 @@ export function CashFlowChart() {
                     <span className="flex items-center gap-2"><span className="size-2.5 rounded-full bg-chart-1" /> Money in</span>
                     <span className="flex items-center gap-2"><span className="size-2.5 rounded-full bg-chart-2" /> Money out</span>
                 </div>
-                <span className="text-caption text-fg-tertiary">Oct through today</span>
+                <span className="text-caption text-fg-tertiary">{data[5]?.month} through today</span>
             </div>
         </div>
     );
