@@ -1,9 +1,8 @@
 import Image from "next/image";
-import { LayoutGrid, FileText, Wallet, Users } from "lucide-react";
+import { LayoutGrid, FileText, Wallet } from "lucide-react";
 import { NavLink } from "./navLinks";
 import { SignOutButton } from "./signOutButton";
-import { sampleInvoices, sampleToday } from "~/lib/sampleInvoices";
-import { getDisplayStatus } from "~/lib/invoiceStatus";
+import { WhoOwesYouLink } from "./whoOwesYouLink";
 
 interface SidebarProps {
     user: { name: string; detail: string; image?: string | null };
@@ -20,9 +19,6 @@ function getInitials(name: string) {
 }
 
 export function Sidebar({ user }: SidebarProps) {
-    // Sample data for now. Later: an overdue count from Joseph's invoice router
-    const overdueCount = sampleInvoices.filter((inv) => getDisplayStatus(inv, sampleToday) === "overdue").length;
-
     return (
         <aside className="flex sticky top-0 h-dvh w-58 shrink-0 flex-col border-r border-border-subtle bg-canvas px-4 py-6">
             {/* logo */}
@@ -46,9 +42,7 @@ export function Sidebar({ user }: SidebarProps) {
                     Expenses
                 </NavLink>
 
-                <NavLink href="/who-owes-you" icon={<Users className="size-4" />} badge={overdueCount} badgeLabel="overdue">
-                    Who owes you
-                </NavLink>
+                <WhoOwesYouLink />
             </nav>
 
             {/* user */}
