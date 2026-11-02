@@ -8,7 +8,7 @@ import { ExpenseForm } from "./expenseForm";
 import { CategoryBreakdown } from "./categoryBreakdown";
 import { primaryButton, secondaryButton } from "./buttonStyles";
 import { usd } from "~/lib/format";
-import { toSampleExpense, toDateInput, type ExpenseInput } from "~/lib/expenseDraft";
+import { toDateInput, type ExpenseInput } from "~/lib/expenseDraft";
 import {
     categoryBreakdown,
     categoryLabels,
@@ -19,26 +19,45 @@ import {
     sumAmounts,
     type Period,
 } from "~/lib/expenseSummary";
-import type { Expense, PaymentAccount, Vendor } from "~/lib/sampleExpenses";
+import type { Expense, PaymentAccount } from "~/lib/sampleExpenses";
+import { api } from "~/trpc/react";
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 const percent = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 });
 const csvCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
 type ExpensesViewProps = {
-    initialExpenses: Expense[];
-    initialVendors: Vendor[];
     paymentAccounts: PaymentAccount[];
-    today: Date;
 };
 
-export function ExpensesView({ initialExpenses, initialVendors, paymentAccounts, today }: ExpensesViewProps) {
-    // Local state stands in for the database until the routers land
-    const [expenses, setExpenses] = useState(initialExpenses);
-    const [vendors, setVendors] = useState(initialVendors);
+export function ExpensesView({ paymentAccounts }: ExpensesViewProps) {
+    const [today] = useState(() => new Date());
     const [period, setPeriod] = useState<Period>(monthKey(today));
     const [formOpen, setFormOpen] = useState(false);
     const [saved, setSaved] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    const utils = api.useUtils();
+    const expenseList = api.expenses.list.useQuery({ take: 100 });
+    const vendorList = api.vendors.list.useQuery({ take: 100 });
+    const createVendor = api.vendors.create.useMutation();
+    const createExpense = api.expenses.create.useMutation();
+    const updateExpense = api.expenses.update.useMutation();
+
+    const vendors = vendorList.data ?? [];
+    // Reshape the router rows into the Expense type the table, cards and chart already use
+    const expenses: Expense[] = (expenseList.data?.expenses ?? []).map((e) => ({
+        id: e.id,
+        vendor: { id: e.vendorId, name: e.vendor?.name ?? "Unknown vendor" },
+        description: e.description,
+        category: e.category,
+        amount: e.amount,
+        date: e.date,
+        status: e.status === "UNPAID" ? "UNPAID" : "PAID",
+        receiptUrl: e.receiptUrl,
+        paidWith: e.paidWith,
+        notes: e.notes,
+    }));
 
     const isCurrentMonth = period === monthKey(today);
     const inRange = expenses.filter((e) => inPeriod(e.date, period, today));
@@ -56,20 +75,40 @@ export function ExpensesView({ initialExpenses, initialVendors, paymentAccounts,
         : `${rangeName} · ${plural(inRange.length, "expense")}`;
     const spendName = period === "ytd" ? "this year’s" : isCurrentMonth ? "this month’s" : "the month’s";
 
-    function handleSave(input: ExpenseInput) {
-        const expense = toSampleExpense(input, vendors);
-        if (input.vendorId === null) setVendors((prev) => [...prev, expense.vendor]);
-        setExpenses((prev) => [expense, ...prev]);
-        setPeriod(monthKey(expense.date)); // jump to the month you just recorded into
-        setFormOpen(false);
-        setSaved(`${expense.vendor.name} · ${usd.format(expense.amount)} saved${expense.status === "UNPAID" ? " as an unpaid bill" : ""}.`);
+    async function handleSave(input: ExpenseInput) {
+        setError(null);
+        try {
+            // A new vendor name gets created first, because an expense needs a vendorId
+            const vendorId = input.vendorId ?? (await createVendor.mutateAsync({ name: input.newVendorName ?? "New vendor" })).id;
+            const expense = await createExpense.mutateAsync({
+                vendorId,
+                description: input.description,
+                amount: input.amount,
+                date: input.date,
+                category: input.category,
+                status: input.status,
+                paidWith: input.paidWith,
+                notes: input.notes,
+                receiptUrl: null, // no receipt upload yet, and the router only accepts a full URL
+            });
+            await Promise.all([utils.expenses.list.invalidate(), utils.vendors.list.invalidate()]);
+            setPeriod(monthKey(input.date)); // jump to the month you just recorded into
+            setFormOpen(false);
+            setSaved(`${expense.vendor.name} · ${usd.format(input.amount)} saved${input.status === "UNPAID" ? " as an unpaid bill" : ""}.`);
+        } catch {
+            setError("Couldn’t save that expense. Please try again.");
+        }
     }
 
-    function markPaid(id: string) {
-        // TODO: api.expense.update.mutate({ id, status: "PAID" }) once the router lands
-        setExpenses((prev) =>
-            prev.map((e) => (e.id === id ? { ...e, status: "PAID", paidWith: e.paidWith ?? paymentAccounts[0]?.label ?? null } : e)),
-        );
+    async function markPaid(id: string) {
+        setError(null);
+        const expense = expenses.find((e) => e.id === id);
+        try {
+            await updateExpense.mutateAsync({ id, status: "PAID", paidWith: expense?.paidWith ?? paymentAccounts[0]?.label ?? null });
+            await utils.expenses.list.invalidate();
+        } catch {
+            setError("Couldn’t mark that bill as paid. Please try again.");
+        }
     }
 
     function handleExport() {
@@ -126,11 +165,14 @@ export function ExpensesView({ initialExpenses, initialVendors, paymentAccounts,
             {saved && (
                 <div role="status" className="flex items-start gap-3 rounded-lg border border-border-default bg-accent-soft p-4 text-body-m text-fg-primary">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-fg-accent" />
-                    <p>
-                        {saved}{" "}
-                        <span className="text-fg-secondary">(Sample mode: nothing is stored until the expense router is connected.)</span>
-                    </p>
+                    <p>{saved}</p>
                 </div>
+            )}
+
+            {error && (
+                <p role="alert" className="rounded-lg bg-status-overdue p-4 text-body-m text-status-overdue-fg">
+                    {error}
+                </p>
             )}
 
             <div className="grid grid-cols-4 gap-6">
@@ -163,7 +205,7 @@ export function ExpensesView({ initialExpenses, initialVendors, paymentAccounts,
                         period={period}
                         periods={periodOptions(expenses, today)}
                         onPeriodChange={setPeriod}
-                        onMarkPaid={markPaid}
+                        onMarkPaid={(id) => void markPaid(id)}
                         today={today}
                     />
                     <CategoryBreakdown expenses={inRange} periodLabel={rangeName} />
@@ -175,7 +217,7 @@ export function ExpensesView({ initialExpenses, initialVendors, paymentAccounts,
                             vendors={vendors}
                             paymentAccounts={paymentAccounts}
                             today={today}
-                            onSave={handleSave}
+                            onSave={(input) => void handleSave(input)}
                             onClose={() => setFormOpen(false)}
                         />
                     </div>
