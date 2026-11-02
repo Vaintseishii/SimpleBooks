@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { LayoutGrid, FileText, Users, Wallet } from "lucide-react";
+import { LayoutGrid, FileText, Users, Wallet, Contact } from "lucide-react";
 import { NavLink } from "./navLinks";
 import { SignOutButton } from "./signOutButton";
 
@@ -39,6 +39,10 @@ export function Sidebar({ user }: SidebarProps) {
 
                 <NavLink href="/expenses" icon={<Wallet className="size-4" />}>
                     Expenses
+                </NavLink>
+
+                <NavLink href="/clients" icon={<Contact className="size-4" />}>
+                    Clients
                 </NavLink>
 
                 <NavLink href="/who-owes-you" icon={<Users className="size-4" />}>

@@ -2,6 +2,14 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 
+import { Plus, Search, X } from "lucide-react";
+
+import {
+  dangerButton,
+  primaryButton,
+  secondaryButton,
+} from "~/components/buttonStyles";
+import { errorClass, fieldClass, labelClass } from "~/components/fieldStyles";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 type ClientRow = RouterOutputs["clients"]["list"][number];
@@ -33,18 +41,6 @@ function getFieldErrors(error: unknown): FieldErrors {
   return data?.zodError?.fieldErrors ?? {};
 }
 
-const inputClass =
-  "w-full rounded-lg border border-border bg-primary px-3 py-2 text-sm text-text outline-none transition placeholder:text-text/40 focus:border-border-foreground";
-
-const primaryButton =
-  "rounded-lg bg-text px-4 py-2 text-sm font-medium text-background transition hover:opacity-90 disabled:opacity-50";
-
-const secondaryButton =
-  "rounded-lg border border-border bg-primary px-4 py-2 text-sm text-text transition hover:bg-hover";
-
-const dangerButton =
-  "rounded-lg border border-red-500/40 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/10";
-
 function Field({
   label,
   error,
@@ -55,12 +51,10 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-text/50 text-xs tracking-wide uppercase">
-        {label}
-      </span>
+    <label className="block">
+      <span className={labelClass}>{label}</span>
       {children}
-      {error && <span className="text-xs text-red-300">{error}</span>}
+      {error && <span className={`block ${errorClass}`}>{error}</span>}
     </label>
   );
 }
@@ -135,195 +129,232 @@ export function ClientsView() {
     }
   };
 
+  const openNew = () => {
+    createClient.reset();
+    updateClient.reset();
+    setForm(EMPTY_FORM);
+    setEditingId(null);
+    setOpen(true);
+  };
+
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <header className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Clients</h1>
+    <div className="flex flex-col gap-8">
+      <div className="flex items-end justify-between gap-6">
+        <div>
+          <h1 className="text-display-page">Clients</h1>
+          <p className="mt-2 max-w-[65ch] text-body-l text-fg-secondary">
+            Everyone you bill, in one place.
+          </p>
+        </div>
         <button
           type="button"
-          className={open ? secondaryButton : primaryButton}
-          onClick={() => {
-            if (open) {
-              closeForm();
-            } else {
-              createClient.reset();
-              updateClient.reset();
-              setOpen(true);
-            }
-          }}
+          className={`${primaryButton} shrink-0`}
+          onClick={openNew}
         >
-          {open ? "Cancel" : "New client"}
+          <Plus className="size-4" /> New client
         </button>
-      </header>
+      </div>
 
-      <input
-        className={inputClass}
-        value={search}
-        placeholder="Search clients by name or email"
-        onChange={(event) => setSearch(event.target.value)}
-      />
-
-      {open && (
-        <form
-          onSubmit={submit}
-          className="border-border bg-foreground flex flex-col gap-3 rounded-lg border p-4"
+      <div className="grid grid-cols-12 items-start gap-6">
+        <div
+          className={`overflow-hidden rounded-lg border border-border-default bg-surface shadow-card ${open ? "col-span-8" : "col-span-12"}`}
         >
-          <h2 className="font-semibold">
-            {editingId ? "Edit client" : "New client"}
-          </h2>
-
-          {error && (
-            <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-              {Object.keys(fieldErrors).length > 0
-                ? "Please fix the highlighted fields."
-                : error.message}
-            </p>
-          )}
-
-          <Field label="Name" error={fieldErrors.name?.[0]}>
-            <input
-              className={inputClass}
-              value={form.name}
-              onChange={(event) =>
-                setForm({ ...form, name: event.target.value })
-              }
-            />
-          </Field>
-
-          <Field label="Contact person" error={fieldErrors.contactName?.[0]}>
-            <input
-              className={inputClass}
-              value={form.contactName}
-              onChange={(event) =>
-                setForm({ ...form, contactName: event.target.value })
-              }
-            />
-          </Field>
-
-          <Field label="Email" error={fieldErrors.email?.[0]}>
-            <input
-              className={inputClass}
-              value={form.email}
-              onChange={(event) =>
-                setForm({ ...form, email: event.target.value })
-              }
-            />
-          </Field>
-
-          <Field label="Phone" error={fieldErrors.phone?.[0]}>
-            <input
-              className={inputClass}
-              value={form.phone}
-              onChange={(event) =>
-                setForm({ ...form, phone: event.target.value })
-              }
-            />
-          </Field>
-
-          <Field label="Address" error={fieldErrors.address?.[0]}>
-            <input
-              className={inputClass}
-              value={form.address}
-              onChange={(event) =>
-                setForm({ ...form, address: event.target.value })
-              }
-            />
-          </Field>
-
-          <Field label="Notes" error={fieldErrors.notes?.[0]}>
-            <textarea
-              className={`${inputClass} min-h-20 resize-y`}
-              value={form.notes}
-              onChange={(event) =>
-                setForm({ ...form, notes: event.target.value })
-              }
-            />
-          </Field>
-
-          <div className="flex gap-2">
-            <button type="submit" className={primaryButton} disabled={saving}>
-              {saving
-                ? "Saving..."
-                : editingId
-                  ? "Save changes"
-                  : "Create client"}
-            </button>
-            <button
-              type="button"
-              className={secondaryButton}
-              onClick={closeForm}
-            >
-              Cancel
-            </button>
+          <div className="p-6">
+            <label className="relative block max-w-xs">
+              <span className="sr-only">Search clients</span>
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-tertiary" />
+              <input
+                className="h-10 w-full rounded-md border border-border-default bg-sunken pr-3 pl-9 text-body-m text-fg-primary placeholder:text-fg-tertiary focus:border-border-accent focus:outline-none"
+                value={search}
+                placeholder="Search by name or email"
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
           </div>
-        </form>
-      )}
 
-      {list.isPending ? (
-        <p className="text-text/50 text-sm">Loading...</p>
-      ) : list.error ? (
-        <p className="text-sm text-red-300">{list.error.message}</p>
-      ) : list.data.length === 0 ? (
-        <p className="text-text/50 text-sm">
-          {trimmedSearch === ""
-            ? "No clients yet."
-            : "No clients match that search."}
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {list.data.map((client) => (
-            <li
-              key={client.id}
-              className="border-border bg-foreground flex items-start justify-between gap-4 rounded-lg border p-4"
-            >
-              <div className="flex min-w-0 flex-col gap-1">
-                <p className="truncate font-semibold">{client.name}</p>
-                {client.contactName && (
-                  <p className="text-text/60 truncate text-sm">
-                    {client.contactName}
-                  </p>
-                )}
-                <p className="text-text/60 truncate text-sm">
-                  {client.email ?? "No email"}
-                  {client.phone ? ` · ${client.phone}` : ""}
-                </p>
-                {client.address && (
-                  <p className="text-text/40 truncate text-sm">
-                    {client.address}
-                  </p>
-                )}
-                {client.notes && (
-                  <p className="text-text/50 mt-1 text-sm whitespace-pre-wrap">
-                    {client.notes}
-                  </p>
-                )}
-              </div>
+          {list.isPending ? (
+            <p className="border-t border-border-subtle p-6 text-body-m text-fg-tertiary">
+              Loading clients…
+            </p>
+          ) : list.error ? (
+            <p className="border-t border-border-subtle p-6 text-body-m text-status-overdue-fg">
+              {list.error.message}
+            </p>
+          ) : list.data.length === 0 ? (
+            <p className="border-t border-border-subtle p-6 text-body-m text-fg-tertiary">
+              {trimmedSearch === ""
+                ? "No clients yet. Add your first one to start invoicing."
+                : "No clients match that search."}
+            </p>
+          ) : (
+            <ul>
+              {list.data.map((client) => (
+                <li
+                  key={client.id}
+                  className="flex items-start justify-between gap-4 border-t border-border-subtle px-6 py-4 transition-colors duration-120 ease-out hover:bg-sunken/60"
+                >
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <p className="truncate text-label-m text-fg-primary">
+                      {client.name}
+                    </p>
+                    {client.contactName && (
+                      <p className="truncate text-body-s text-fg-secondary">
+                        {client.contactName}
+                      </p>
+                    )}
+                    <p className="truncate text-body-s text-fg-secondary">
+                      {client.email ?? "No email"}
+                      {client.phone ? ` · ${client.phone}` : ""}
+                    </p>
+                    {client.address && (
+                      <p className="truncate text-body-s text-fg-tertiary">
+                        {client.address}
+                      </p>
+                    )}
+                    {client.notes && (
+                      <p className="mt-1 text-body-s whitespace-pre-wrap text-fg-tertiary">
+                        {client.notes}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="flex shrink-0 gap-2">
-                <button
-                  type="button"
-                  className={secondaryButton}
-                  onClick={() => startEdit(client)}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  className={dangerButton}
-                  disabled={deleteClient.isPending}
-                  onClick={() => {
-                    if (window.confirm(`Delete ${client.name}?`)) {
-                      deleteClient.mutate({ id: client.id });
-                    }
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      className={secondaryButton}
+                      onClick={() => startEdit(client)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className={dangerButton}
+                      disabled={deleteClient.isPending}
+                      onClick={() => {
+                        if (window.confirm(`Delete ${client.name}?`)) {
+                          deleteClient.mutate({ id: client.id });
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {open && (
+          <form
+            noValidate
+            onSubmit={submit}
+            className="sticky top-8 col-span-4 flex flex-col gap-5 rounded-lg border border-border-default bg-surface p-6 shadow-card"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="text-title-section">
+                {editingId ? "Edit client" : "New client"}
+              </h2>
+              <button
+                type="button"
+                onClick={closeForm}
+                aria-label="Close"
+                className="rounded-sm p-1 text-fg-tertiary transition-colors duration-120 ease-out hover:bg-sunken hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {error && (
+              <p
+                role="alert"
+                className="rounded-lg bg-status-overdue p-4 text-body-m text-status-overdue-fg"
+              >
+                {Object.keys(fieldErrors).length > 0
+                  ? "Please fix the highlighted fields."
+                  : error.message}
+              </p>
+            )}
+
+            <Field label="Name" error={fieldErrors.name?.[0]}>
+              <input
+                className={fieldClass(!!fieldErrors.name)}
+                value={form.name}
+                onChange={(event) =>
+                  setForm({ ...form, name: event.target.value })
+                }
+              />
+            </Field>
+
+            <Field label="Contact person" error={fieldErrors.contactName?.[0]}>
+              <input
+                className={fieldClass(!!fieldErrors.contactName)}
+                value={form.contactName}
+                onChange={(event) =>
+                  setForm({ ...form, contactName: event.target.value })
+                }
+              />
+            </Field>
+
+            <Field label="Email" error={fieldErrors.email?.[0]}>
+              <input
+                className={fieldClass(!!fieldErrors.email)}
+                value={form.email}
+                onChange={(event) =>
+                  setForm({ ...form, email: event.target.value })
+                }
+              />
+            </Field>
+
+            <Field label="Phone" error={fieldErrors.phone?.[0]}>
+              <input
+                className={fieldClass(!!fieldErrors.phone)}
+                value={form.phone}
+                onChange={(event) =>
+                  setForm({ ...form, phone: event.target.value })
+                }
+              />
+            </Field>
+
+            <Field label="Address" error={fieldErrors.address?.[0]}>
+              <input
+                className={fieldClass(!!fieldErrors.address)}
+                value={form.address}
+                onChange={(event) =>
+                  setForm({ ...form, address: event.target.value })
+                }
+              />
+            </Field>
+
+            <Field label="Notes" error={fieldErrors.notes?.[0]}>
+              <textarea
+                className={`${fieldClass(!!fieldErrors.notes)} h-auto min-h-24 resize-y py-3`}
+                value={form.notes}
+                onChange={(event) =>
+                  setForm({ ...form, notes: event.target.value })
+                }
+              />
+            </Field>
+
+            <div className="flex gap-3">
+              <button type="submit" className={primaryButton} disabled={saving}>
+                {saving
+                  ? "Saving…"
+                  : editingId
+                    ? "Save changes"
+                    : "Create client"}
+              </button>
+              <button
+                type="button"
+                className={secondaryButton}
+                onClick={closeForm}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
