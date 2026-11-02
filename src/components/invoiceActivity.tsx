@@ -1,24 +1,25 @@
+"use client";
+
 import NextLink from "next/link";
 import { ArrowRight, CircleCheck, Ellipsis } from "lucide-react";
-import { StatusPill, type DisplayStatus } from "./statusPill";
+import { StatusPill } from "./statusPill";
 import { usd } from "~/lib/format";
+import { getDisplayStatus, shortDate } from "~/lib/invoiceStatus";
+import { api } from "~/trpc/react";
 
-type InvoiceRow = {
-    number: string;
-    client: string;
-    project: string;
-    dueDate: string;
-    status: DisplayStatus;
-    amount: number;
-};
-
-const invoices: InvoiceRow[] = [
-    { number: "INV-1051", client: "Bloom Wellness", project: "Brand guidelines", dueDate: "Oct 28, 2026", status: "sent", amount: 2850 },
-    { number: "INV-1050", client: "Forma Objects", project: "Packaging design", dueDate: "Oct 20, 2026", status: "sent", amount: 1800 },
-    { number: "INV-1047", client: "Willow Home", project: "E-commerce design", dueDate: "Oct 12, 2026", status: "paid", amount: 4200 },
-];
+const longDate = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" });
 
 export function InvoiceActivity() {
+    // Newest first (the router sorts by issue date)
+    const { data } = api.invoices.list.useQuery({ take: 100 });
+
+    const today = new Date();
+    const all = data?.invoices ?? [];
+    const invoices = all.slice(0, 5);
+    const latestPaid = all
+        .filter((inv) => inv.paidAt)
+        .sort((a, b) => b.paidAt!.getTime() - a.paidAt!.getTime())[0];
+
     return (
         <div className="overflow-hidden rounded-lg border border-border-default bg-surface shadow-card">
             <div className="flex items-center justify-between p-6">
@@ -43,18 +44,25 @@ export function InvoiceActivity() {
                     </tr>
                 </thead>
                 <tbody className="text-body-m">
+                    {invoices.length === 0 && (
+                        <tr className="h-14 border-t border-border-subtle">
+                            <td colSpan={6} className="px-6 text-fg-tertiary">
+                                {data ? "No invoices yet." : "Loading…"}
+                            </td>
+                        </tr>
+                    )}
                     {invoices.map((inv) => (
-                        <tr key={inv.number} className="h-14 border-t border-border-subtle transition-colors duration-120 ease-out hover:bg-sunken/60">
+                        <tr key={inv.id} className="h-14 border-t border-border-subtle transition-colors duration-120 ease-out hover:bg-sunken/60">
                             <td className="px-6 text-label-m text-fg-accent">{inv.number}</td>
                             <td className="py-2">
-                                <p className="text-fg-primary">{inv.client}</p>
-                                <p className="text-body-s text-fg-tertiary">{inv.project}</p>
+                                <p className="text-fg-primary">{inv.client.name}</p>
+                                <p className="text-body-s text-fg-tertiary">{inv.projectTitle}</p>
                             </td>
-                            <td className="text-fg-secondary">{inv.dueDate}</td>
+                            <td className="text-fg-secondary">{shortDate.format(inv.dueDate)}</td>
                             <td>
-                                <StatusPill status={inv.status} />
+                                <StatusPill status={getDisplayStatus(inv, today)} />
                             </td>
-                            <td className="text-right font-mono text-num-m">{usd.format(inv.amount)}</td>
+                            <td className="text-right font-mono text-num-m">{usd.format(inv.total)}</td>
                             <td className="text-center">
                                 <button
                                     type="button"
@@ -69,10 +77,14 @@ export function InvoiceActivity() {
                 </tbody>
             </table>
 
-            <div className="flex items-center gap-2 border-t border-border-subtle px-6 py-4 text-body-s text-fg-secondary">
-                <CircleCheck className="size-4 text-fg-accent" />
-                Latest payment: Willow Home paid <span className="font-mono text-num-s text-fg-primary">{usd.format(4200)}</span> on October 12. Looking good.
-            </div>
+            {latestPaid?.paidAt && (
+                <div className="flex items-center gap-2 border-t border-border-subtle px-6 py-4 text-body-s text-fg-secondary">
+                    <CircleCheck className="size-4 text-fg-accent" />
+                    Latest payment: {latestPaid.client.name} paid{" "}
+                    <span className="font-mono text-num-s text-fg-primary">{usd.format(latestPaid.total)}</span> on{" "}
+                    {longDate.format(latestPaid.paidAt)}. Looking good.
+                </div>
+            )}
         </div>
     );
 }
