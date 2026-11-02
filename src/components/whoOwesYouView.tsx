@@ -20,47 +20,56 @@ import {
     sumBalances,
 } from "~/lib/receivables";
 import type { Invoice } from "~/lib/sampleInvoices";
-import type { Expense } from "~/lib/sampleExpenses";
-import type { ClientOption, PaymentMethod } from "~/lib/sampleBilling";
+import type { PaymentMethod } from "~/lib/sampleBilling";
+import { api } from "~/trpc/react";
 
 type Panel = { kind: "reminder"; invoiceId: string } | { kind: "payment"; invoiceId: string | null } | null;
 
 const csvCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
 type WhoOwesYouViewProps = {
-    initialInvoices: Invoice[];
-    expenses: Expense[];
-    clients: ClientOption[];
     paymentMethods: PaymentMethod[];
-    reminderHistory: Record<string, Date>;
     sender: string;
-    today: Date;
 };
 
-export function WhoOwesYouView({
-    initialInvoices,
-    expenses,
-    clients,
-    paymentMethods,
-    reminderHistory,
-    sender,
-    today,
-}: WhoOwesYouViewProps) {
-    // Local state stands in for the database until the routers land
-    const [invoices, setInvoices] = useState(initialInvoices);
-    const [lastReminders, setLastReminders] = useState(reminderHistory);
+export function WhoOwesYouView({ paymentMethods, sender }: WhoOwesYouViewProps) {
+    const [today] = useState(() => new Date());
+    const [lastReminders, setLastReminders] = useState<Record<string, Date>>({}); // reminders sent on this visit
     const [notice, setNotice] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    const utils = api.useUtils();
+    const invoiceList = api.invoices.list.useQuery({ status: "SENT", take: 100 }); // sent = not paid yet
+    const billList = api.expenses.list.useQuery({ status: "UNPAID", take: 100 });
+    const clientList = api.clients.list.useQuery({ take: 100 });
+    const createPayment = api.invoices.createPayment.useMutation();
+
+    const rows = invoiceList.data?.invoices ?? [];
+    const clients = clientList.data ?? [];
+    const unpaidBills = billList.data?.expenses ?? [];
+    // Reshape the router rows into the Invoice type the table, buckets and forms already use
+    const invoices: Invoice[] = rows.map((inv) => ({
+        id: inv.id,
+        number: inv.number,
+        client: inv.client,
+        projectTitle: inv.projectTitle ?? "",
+        issueDate: inv.issueDate,
+        dueDate: inv.dueDate,
+        status: inv.status,
+        total: inv.total,
+        paidAt: inv.paidAt,
+    }));
 
     const balances = outstandingBalances(invoices, today);
     const overdue = balances.filter((b) => b.overdue);
     const notYetDue = balances.filter((b) => !b.overdue);
-    const unpaidBills = expenses.filter((e) => e.status === "UNPAID");
 
-    // Open on the oldest overdue invoice, like the design
-    const [panel, setPanel] = useState<Panel>(() => {
-        const oldest = sortBalances(overdue, "oldest")[0];
-        return oldest ? { kind: "reminder", invoiceId: oldest.invoice.id } : null;
-    });
+    // Until you pick something, open on the oldest overdue invoice, like the design.
+    // undefined = not picked yet (the data loads after the first render).
+    const [pickedPanel, setPanel] = useState<Panel | undefined>(undefined);
+    const oldest = sortBalances(overdue, "oldest")[0];
+    const panel: Panel =
+        pickedPanel !== undefined ? pickedPanel : oldest ? { kind: "reminder", invoiceId: oldest.invoice.id } : null;
 
     const reminderBalance = panel?.kind === "reminder" ? balances.find((b) => b.invoice.id === panel.invoiceId) : undefined;
     const oldestOverdue = Math.max(0, ...overdue.map((b) => b.daysOverdue));
@@ -71,16 +80,21 @@ export function WhoOwesYouView({
         // TODO: api.invoice.sendReminder.mutate(input) once there's an email/reminder router
         console.info("Reminder ready to send", input);
         setLastReminders((prev) => ({ ...prev, [input.invoiceId]: today }));
-        setNotice(`Reminder sent to ${input.to}.`);
+        setNotice(`Reminder ready for ${input.to}. (Reminders aren’t emailed yet.)`);
     }
 
-    function handleRecordPayment(input: PaymentInput) {
+    async function handleRecordPayment(input: PaymentInput) {
+        setError(null);
         const invoice = invoices.find((inv) => inv.id === input.invoiceId);
-        setInvoices((prev) =>
-            prev.map((inv) => (inv.id === input.invoiceId ? { ...inv, status: "PAID", paidAt: input.paidAt } : inv)),
-        );
-        setPanel(null);
-        if (invoice) setNotice(`${invoice.client.name} paid ${invoice.number} · ${usd.format(input.amount)}. Marked as paid.`);
+        try {
+            // A full payment, so the router marks the invoice PAID and it drops off this page
+            await createPayment.mutateAsync({ invoiceId: input.invoiceId, amount: input.amount, date: input.paidAt });
+            await utils.invoices.list.invalidate();
+            setPanel(null);
+            if (invoice) setNotice(`${invoice.client.name} paid ${invoice.number} · ${usd.format(input.amount)}. Marked as paid.`);
+        } catch {
+            setError("Couldn’t record that payment. Please try again.");
+        }
     }
 
     function handleExport() {
@@ -124,6 +138,7 @@ export function WhoOwesYouView({
                         onClick={() => {
                             setPanel({ kind: "payment", invoiceId: reminderBalance?.invoice.id ?? null });
                             setNotice(null);
+                            setError(null);
                         }}
                         className={primaryButton}
                     >
@@ -135,11 +150,14 @@ export function WhoOwesYouView({
             {notice && (
                 <div role="status" className="flex items-start gap-3 rounded-lg border border-border-default bg-accent-soft p-4 text-body-m text-fg-primary">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-fg-accent" />
-                    <p>
-                        {notice}{" "}
-                        <span className="text-fg-secondary">(Sample mode: nothing is saved or emailed until the invoice router is connected.)</span>
-                    </p>
+                    <p>{notice}</p>
                 </div>
+            )}
+
+            {error && (
+                <p role="alert" className="rounded-lg bg-status-overdue p-4 text-body-m text-status-overdue-fg">
+                    {error}
+                </p>
             )}
 
             <div className="grid grid-cols-3 gap-6">
@@ -207,7 +225,11 @@ export function WhoOwesYouView({
                                     balance={reminderBalance}
                                     contact={clients.find((c) => c.name === reminderBalance.invoice.client.name)}
                                     sender={sender}
-                                    lastSentAt={lastReminders[reminderBalance.invoice.id] ?? null}
+                                    lastSentAt={
+                                        lastReminders[reminderBalance.invoice.id] ??
+                                        rows.find((r) => r.id === reminderBalance.invoice.id)?.lastReminderAt ??
+                                        null
+                                    }
                                     onSend={handleSendReminder}
                                     onClose={() => setPanel(null)}
                                 />
@@ -224,3 +246,4 @@ export function WhoOwesYouView({
         </div>
     );
 }
+
