@@ -10,6 +10,7 @@ const labels: Record<string, string> = {
     "/invoices": "Invoices",
     "/invoices/new": "New invoice",
     "/expenses": "Expenses",
+    "/clients": "Clients",
     "/who-owes-you": "Who owes you",
 };
 
