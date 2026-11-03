@@ -16,7 +16,6 @@ type ClientRow = RouterOutputs["clients"]["list"][number];
 
 type FormState = {
   name: string;
-  contactName: string;
   email: string;
   phone: string;
   address: string;
@@ -25,7 +24,6 @@ type FormState = {
 
 const EMPTY_FORM: FormState = {
   name: "",
-  contactName: "",
   email: "",
   phone: "",
   address: "",
@@ -108,7 +106,6 @@ export function ClientsView() {
     setEditingId(client.id);
     setForm({
       name: client.name,
-      contactName: client.contactName ?? "",
       email: client.email ?? "",
       phone: client.phone ?? "",
       address: client.address ?? "",
@@ -282,16 +279,6 @@ export function ClientsView() {
                 value={form.name}
                 onChange={(event) =>
                   setForm({ ...form, name: event.target.value })
-                }
-              />
-            </Field>
-
-            <Field label="Contact person" error={fieldErrors.contactName?.[0]}>
-              <input
-                className={fieldClass(!!fieldErrors.contactName)}
-                value={form.contactName}
-                onChange={(event) =>
-                  setForm({ ...form, contactName: event.target.value })
                 }
               />
             </Field>
