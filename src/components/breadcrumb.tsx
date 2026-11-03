@@ -27,7 +27,12 @@ export function Breadcrumb() {
 
     return (
         <div className="flex items-center gap-2">
-            <span className="text-body-m text-fg-tertiary">Workspace</span>
+            <NextLink
+                href="/"
+                className="rounded-xs text-body-m text-fg-tertiary transition-colors duration-120 ease-out hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus"
+            >
+                Workspace
+            </NextLink>
             {crumbs.map((path, i) => {
                 const isLast = i === crumbs.length - 1;
                 return (
