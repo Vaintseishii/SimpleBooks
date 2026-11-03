@@ -19,7 +19,14 @@ const geistMono = Geist_Mono({
 export const metadata = {
     title: "SimpleBooks",
     description: "Simple bookkeeping for small businesses",
-    icons: [{ rel: "icon", url: "/favicon.ico" }],
+    icons: {
+        icon: [
+            { url: "/favicon.svg", type: "image/svg+xml" },
+            { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+            { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+        ],
+        apple: "/apple-touch-icon.png",
+    },
 };
 
 export default async function RootLayout({

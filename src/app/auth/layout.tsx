@@ -1,7 +1,7 @@
-import { BookOpen } from "lucide-react";
+import { BookOpenText } from "lucide-react";
 
-// Shared by sign in, sign up and forgot password: green brand panel on the
-// left, the page on the right. The panel hides on small screens.
+// Shared by sign in and sign up: green brand panel on the left, the page on
+// the right. The panel hides on small screens.
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
         <div className="flex min-h-screen bg-canvas">
@@ -13,7 +13,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 }}
             >
                 <div className="flex items-center gap-2">
-                    <BookOpen className="size-5" aria-hidden />
+                    <BookOpenText className="size-5" aria-hidden />
                     <span className="text-title-card">SimpleBooks</span>
                 </div>
 

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { LayoutGrid, FileText, Users, Wallet, Contact } from "lucide-react";
+import { LayoutGrid, FileText, Users, Wallet, Contact, BookOpenText } from "lucide-react";
 import { NavLink } from "./navLinks";
 import { SignOutButton } from "./signOutButton";
 
@@ -22,7 +22,9 @@ export function Sidebar({ user }: SidebarProps) {
         <aside className="flex sticky top-0 h-dvh w-58 shrink-0 flex-col border-r border-border-subtle bg-canvas px-4 py-6">
             {/* logo */}
             <div className="mb-8 flex items-center gap-3 px-2">
-                <div className="size-8 rounded-md bg-accent" />
+                <div className="flex size-8 items-center justify-center rounded-md bg-accent">
+                    <BookOpenText className="size-5 text-fg-on-accent" aria-hidden />
+                </div>
                 <span className="text-title-section">SimpleBooks</span>
             </div>
 
