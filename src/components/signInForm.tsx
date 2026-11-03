@@ -39,13 +39,8 @@ export function SignInForm({ callbackUrl }: { callbackUrl: string }) {
             </div>
 
             <div>
-                <div className="mb-2 flex items-center justify-between">
-                    <label htmlFor="password" className="text-label-m text-fg-primary">Password</label>
-                    <NextLink href="/auth/forgot-password" className="text-label-s text-fg-accent hover:underline">
-                        Forgot password?
-                    </NextLink>
-                </div>
-                <PasswordInput id="password" name="password" autoComplete="current-password" />
+                <label htmlFor="password" className={labelClass}>Password</label>
+                <PasswordInput id="password" name="password" autoComplete="current-password" placeholder="Enter your password" />
             </div>
 
             <label className="flex items-center gap-2 text-body-s text-fg-secondary">

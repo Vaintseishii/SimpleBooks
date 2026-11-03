@@ -8,12 +8,14 @@ type PasswordInputProps = {
     id: string;
     name: string;
     autoComplete: "current-password" | "new-password";
+    placeholder?: string;
+    maxLength?: number;
     invalid?: boolean;
     describedBy?: string;
 };
 
 // Password field with the eye button that shows / hides what you typed
-export function PasswordInput({ id, name, autoComplete, invalid = false, describedBy }: PasswordInputProps) {
+export function PasswordInput({ id, name, autoComplete, placeholder, maxLength, invalid = false, describedBy }: PasswordInputProps) {
     const [visible, setVisible] = useState(false);
 
     return (
@@ -23,6 +25,8 @@ export function PasswordInput({ id, name, autoComplete, invalid = false, describ
                 name={name}
                 type={visible ? "text" : "password"}
                 autoComplete={autoComplete}
+                placeholder={placeholder}
+                maxLength={maxLength}
                 required
                 aria-invalid={invalid || undefined}
                 aria-describedby={describedBy}

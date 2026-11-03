@@ -10,8 +10,10 @@ import { db } from "~/server/db";
 // `values` refills the fields so people don't retype everything.
 export type AuthFormState = {
     error?: string;
-    fieldErrors?: Partial<Record<"name" | "email" | "password", string>>;
-    values?: { name?: string; email?: string };
+    fieldErrors?: Partial<
+        Record<"firstName" | "lastName" | "email" | "password" | "confirmPassword", string>
+    >;
+    values?: { firstName?: string; lastName?: string; email?: string };
 };
 
 // formData.get() can also return a File, so only accept text
@@ -60,28 +62,35 @@ export async function signUpAction(
     _prev: AuthFormState,
     formData: FormData,
 ): Promise<AuthFormState> {
-    const raw = {
-        name: text(formData, "name"),
-        email: text(formData, "email"),
-        password: text(formData, "password"),
-    };
-    const values = { name: raw.name, email: raw.email };
+    const firstName = text(formData, "firstName");
+    const lastName = text(formData, "lastName");
+    const email = text(formData, "email");
+    const values = { firstName, lastName, email };
 
-    const parsed = signUpSchema.safeParse(raw);
+    const parsed = signUpSchema.safeParse({
+        firstName,
+        lastName,
+        email,
+        password: text(formData, "password"),
+        confirmPassword: text(formData, "confirmPassword"),
+    });
     if (!parsed.success) {
         const errors = parsed.error.flatten().fieldErrors;
         return {
             values,
             fieldErrors: {
-                name: errors.name?.[0],
+                firstName: errors.firstName?.[0],
+                lastName: errors.lastName?.[0],
                 email: errors.email?.[0],
                 password: errors.password?.[0],
+                confirmPassword: errors.confirmPassword?.[0],
             },
         };
     }
-    const { name, email, password } = parsed.data;
+    // The schema trims and lowercases; confirmPassword is only ever compared.
+    const { firstName: first, lastName: last, email: address, password } = parsed.data;
 
-    const existing = await db.user.findUnique({ where: { email } });
+    const existing = await db.user.findUnique({ where: { email: address } });
     if (existing) {
         return {
             values,
@@ -90,12 +99,17 @@ export async function signUpAction(
     }
 
     await db.user.create({
-        data: { name, email, passwordHash: await hash(password, 12) },
+        data: {
+            firstName: first,
+            lastName: last,
+            email: address,
+            passwordHash: await hash(password, 12),
+        },
     });
 
     // Sign the new user straight in (throws a redirect to the overview)
     await signIn("credentials", {
-        email,
+        email: address,
         password,
         remember: "true",
         redirectTo: "/",

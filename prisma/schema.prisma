@@ -43,7 +43,8 @@ enum ExpenseStatus {
 
 model User {
     id                String    @id @default(cuid())
-    name              String?
+    firstName         String?
+    lastName          String?
     email             String?   @unique
     emailVerified     DateTime?
     passwordHash      String?   // bcrypt hash, never the plain password
