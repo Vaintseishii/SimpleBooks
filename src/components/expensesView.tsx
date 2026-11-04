@@ -135,7 +135,7 @@ export function ExpensesView() {
             )}
 
             <div className="grid grid-cols-3 gap-6">
-                <StatCard label={spentLabel} value={spent} note={spentNote} highlight />
+                <StatCard label={spentLabel} value={spent} note={spentNote} gradient />
                 <StatCard
                     label="Unpaid bills"
                     value={sumAmounts(unpaid)}
