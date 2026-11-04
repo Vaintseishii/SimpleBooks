@@ -28,7 +28,7 @@ function inTab(tab: Tab, status: DisplayStatus) {
 }
 
 const selectClass =
-    "h-9 appearance-none rounded-md border border-border-default bg-surface pr-3 pl-9 text-label-m text-fg-primary transition-colors duration-120 ease-out hover:bg-sunken focus-visible:outline-2 focus-visible:outline-border-focus";
+    "h-10 appearance-none rounded-md border border-border-default bg-surface pr-3 pl-10 text-label-m text-fg-primary transition-colors duration-120 ease-out hover:bg-sunken focus-visible:outline-2 focus-visible:outline-border-focus";
 const selectIcon = "pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-secondary";
 
 type InvoicesTableProps = { invoices: Invoice[]; today: Date };
@@ -83,7 +83,7 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
     }
 
     return (
-        <div className="overflow-hidden rounded-lg border border-border-default bg-surface shadow-card">
+        <div className="rounded-xl border border-border-default bg-surface shadow-card-elevated overflow-hidden">
             {/* tabs */}
             <div role="tablist" className="flex gap-8 border-b border-border-subtle px-6">
                 {tabs.map((t) => {
@@ -155,17 +155,17 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
 
             {/* table */}
             <table className="w-full text-left">
-                <thead className="bg-sunken text-label-s text-fg-tertiary">
-                    <tr className="h-10">
+                <thead className="bg-sunken text-label-m text-fg-tertiary">
+                    <tr className="h-12">
                         <th className="w-12 pl-6">
                             <input type="checkbox" aria-label="Select all invoices" checked={allSelected} onChange={toggleAll} className="size-4 rounded-xs align-middle accent-accent" />
                         </th>
-                        <th className="px-4 font-medium">Invoice</th>
-                        <th className="font-medium">Client / project</th>
-                        <th className="font-medium">Issued</th>
-                        <th className="font-medium">Due date</th>
-                        <th className="font-medium">Status</th>
-                        <th className="text-right font-medium">Amount</th>
+                        <th className="px-4 font-semibold">Invoice</th>
+                        <th className="font-semibold">Client / project</th>
+                        <th className="font-semibold">Issued</th>
+                        <th className="font-semibold">Due date</th>
+                        <th className="font-semibold">Status</th>
+                        <th className="text-right font-semibold">Amount</th>
                         <th className="w-16" />
                     </tr>
                 </thead>
@@ -176,7 +176,7 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                         return (
                             <tr
                                 key={inv.id}
-                                className={`h-14 border-t border-border-subtle transition-colors duration-120 ease-out ${
+                                className={`h-16 border-t border-border-subtle transition-colors duration-120 ease-out ${
                                     isSelected ? "bg-accent-soft" : "hover:bg-sunken/60"
                                 }`}
                             >
@@ -189,7 +189,7 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                                     </NextLink>
                                 </td>
                                 <td className="py-2">
-                                    <p className="text-fg-primary">{inv.client.name}</p>
+                                    <p className="text-fg-primary font-medium">{inv.client.name}</p>
                                     <p className="text-body-s text-fg-tertiary">{inv.projectTitle}</p>
                                 </td>
                                 <td className="text-fg-secondary">{shortDate.format(inv.issueDate)}</td>
@@ -197,7 +197,7 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                                 <td>
                                     <StatusPill status={inv.displayStatus} />
                                 </td>
-                                <td className="text-right font-mono text-num-m">{usd.format(inv.total)}</td>
+                                <td className="text-right font-semibold text-num-m">{usd.format(inv.total)}</td>
                                 <td className="text-center">
                                     <button
                                         type="button"
@@ -220,13 +220,13 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                 </tbody>
             </table>
 
-            <div className="flex items-center justify-between border-t border-border-subtle px-6 py-4 text-body-s text-fg-secondary">
+            <div className="flex items-center justify-between border-t border-border-subtle px-6 py-4 text-body-m text-fg-secondary">
                 <span>
                     {visible.length === rows.length
                         ? `Showing all ${rows.length} invoices`
                         : `Showing ${visible.length} of ${rows.length} invoices`}
                 </span>
-                {selected.size > 0 && <span className="text-fg-primary">{selected.size} selected</span>}
+                {selected.size > 0 && <span className="text-fg-primary font-medium">{selected.size} selected</span>}
             </div>
         </div>
     );
