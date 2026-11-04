@@ -8,9 +8,8 @@ import { LineItemsEditor } from "./lineItemsEditor";
 import { InvoicePreview } from "./invoicePreview";
 import { primaryButton, secondaryButton } from "./buttonStyles";
 import { cardClass, errorClass, fieldClass, labelClass } from "./fieldStyles";
-import { CurrencyIcon } from "./currencyIcon";
 import { formatMoney } from "~/lib/format";
-import { CURRENCIES, toCurrencyCode, type CurrencyCode } from "~/lib/currencies";
+import { toCurrencyCode, type CurrencyCode } from "~/lib/currencies";
 import {
     createDraft,
     getTotals,
@@ -29,6 +28,9 @@ type InvoiceFormProps = {
     workspace: WorkspaceInfo;
     existingNumbers: string[];
     today: Date;
+    /** Editing an existing invoice: seed the form from it instead of a blank draft. */
+    initialDraft?: InvoiceDraft;
+    mode?: "create" | "edit";
     onSave: (input: InvoiceInput) => Promise<unknown>;
     isSaving: boolean;
     // Called when one of the business fields loses focus, so the workspace keeps
@@ -47,20 +49,22 @@ export function InvoiceForm({
     workspace,
     existingNumbers,
     today,
+    initialDraft,
+    mode = "create",
     onSave,
     isSaving,
     onBusinessChange,
 }: InvoiceFormProps) {
     const [draft, setDraft] = useState<InvoiceDraft>(() =>
-        createDraft({
+        initialDraft ?? createDraft({
             today,
             number: nextInvoiceNumber(existingNumbers),
         }),
     );
     const [errors, setErrors] = useState<DraftErrors>({});
     const [saved, setSaved] = useState<{ status: InvoiceStatus; number: string } | null>(null);
-    // Starts on the workspace default; changing it here only affects this invoice.
-    const [currency, setCurrency] = useState<CurrencyCode>(() =>
+    // One currency per workspace now, so there is nothing to pick here.
+    const [currency] = useState<CurrencyCode>(() =>
         toCurrencyCode(workspace.currency),
     );
     // Seeded from the workspace; edits are saved back so the next invoice keeps them.
@@ -135,10 +139,11 @@ export function InvoiceForm({
                         className={secondaryButton}
                         disabled={isSaving}
                     >
-                        Save draft
+                        {mode === "edit" ? "Save changes" : "Save draft"}
                     </button>
                     <button type="submit" className={primaryButton} disabled={isSaving}>
-                        <ArrowUpRight className="size-4" /> Send invoice
+                        <ArrowUpRight className="size-4" />
+                        {mode === "edit" ? "Save & send" : "Send invoice"}
                     </button>
                 </div>
             </div>
@@ -275,27 +280,7 @@ export function InvoiceForm({
                     <section className={cardClass}>
                         <div className="mb-6 flex items-center justify-between gap-4">
                             <h2 className="text-title-card">What are you billing for?</h2>
-                            <label className="flex shrink-0 items-center gap-2">
-                                <span className="text-caption text-fg-tertiary">Currency</span>
-                                <span className="relative">
-                                    <CurrencyIcon
-                                        code={currency}
-                                        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-secondary"
-                                    />
-                                    <select
-                                        value={currency}
-                                        onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-                                        aria-label="Invoice currency"
-                                        className={`${fieldClass()} appearance-none pr-10 pl-10`}
-                                    >
-                                        {CURRENCIES.map((option) => (
-                                            <option key={option.code} value={option.code}>
-                                                {option.code}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </span>
-                            </label>
+                            <span className="text-caption text-fg-tertiary">Currency: {currency}</span>
                         </div>
 
                         <LineItemsEditor items={draft.items} error={errors.items} onChange={(items) => update("items", items)} />

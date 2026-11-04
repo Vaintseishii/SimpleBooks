@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, Info, Plus } from "lucide-react";
 import { StatCard } from "./statCard";
+import { SkeletonCard, SkeletonRows } from "./skeleton";
 import { ExpensesTable } from "./expensesTable";
 import { ExpenseForm } from "./expenseForm";
 import { CategoryBreakdown } from "./categoryBreakdown";
@@ -40,6 +41,11 @@ export function ExpensesView() {
     const createVendor = api.vendors.create.useMutation();
     const createExpense = api.expenses.create.useMutation();
     const updateExpense = api.expenses.update.useMutation();
+    const deleteExpense = api.expenses.delete.useMutation({
+        onSuccess: async () => {
+            await utils.expenses.list.invalidate();
+        },
+    });
 
     const vendors = vendorList.data ?? [];
     // Reshape the router rows into the Expense type the table, cards and chart already use
@@ -102,6 +108,15 @@ export function ExpensesView() {
         }
     }
 
+    async function removeExpense(id: string) {
+        setError(null);
+        try {
+            await deleteExpense.mutateAsync({ id });
+        } catch {
+            setError("Couldn’t delete that expense. Please try again.");
+        }
+    }
+
     return (
         <div className="flex flex-col gap-8">
             <div className="flex items-end justify-between gap-6">
@@ -138,30 +153,47 @@ export function ExpensesView() {
             )}
 
             <div className="grid grid-cols-3 gap-6">
-                <StatCard label={spentLabel} value={spent} currency={currency} note={spentNote} gradient />
-                <StatCard
-                    label="Unpaid bills"
-                    value={sumAmounts(unpaid)}
-                    currency={currency}
-                    note={unpaid.length > 0 ? `${plural(unpaid.length, "bill")} still to pay` : "All caught up. Nothing to pay."}
-                />
-                <StatCard
-                    label="Largest category"
-                    value={largest ? categoryLabels[largest.category] : "None yet"}
-                    note={largest ? `${formatMoney(largest.total, currency)} · ${percent.format(largest.share)} of ${spendName} spend` : "Nothing spent in this period"}
-                />
+                {expenseList.isPending ? (
+                    <>
+                        <SkeletonCard className="h-32" />
+                        <SkeletonCard className="h-32" />
+                        <SkeletonCard className="h-32" />
+                    </>
+                ) : (
+                    <>
+                        <StatCard label={spentLabel} value={spent} currency={currency} note={spentNote} gradient />
+                        <StatCard
+                            label="Unpaid bills"
+                            value={sumAmounts(unpaid)}
+                            currency={currency}
+                            note={unpaid.length > 0 ? `${plural(unpaid.length, "bill")} still to pay` : "All caught up. Nothing to pay."}
+                        />
+                        <StatCard
+                            label="Largest category"
+                            value={largest ? categoryLabels[largest.category] : "None yet"}
+                            note={largest ? `${formatMoney(largest.total, currency)} · ${percent.format(largest.share)} of ${spendName} spend` : "Nothing spent in this period"}
+                        />
+                    </>
+                )}
             </div>
 
             <div className="grid grid-cols-12 items-start gap-6">
                 <div className={`flex flex-col gap-6 ${formOpen ? "col-span-8" : "col-span-12"}`}>
-                    <ExpensesTable
-                        expenses={inRange}
-                        period={period}
-                        periods={periodOptions(expenses, today)}
-                        onPeriodChange={setPeriod}
-                        onMarkPaid={(id) => void markPaid(id)}
-                        today={today}
-                    />
+                    {expenseList.isPending ? (
+                        <div className="rounded-lg border border-border-default bg-surface p-6 shadow-card-elevated">
+                            <SkeletonRows rows={6} />
+                        </div>
+                    ) : (
+                        <ExpensesTable
+                            expenses={inRange}
+                            period={period}
+                            periods={periodOptions(expenses, today)}
+                            onPeriodChange={setPeriod}
+                            onMarkPaid={(id) => void markPaid(id)}
+                            onDelete={(id) => void removeExpense(id)}
+                            today={today}
+                        />
+                    )}
                     <CategoryBreakdown expenses={inRange} periodLabel={rangeName} currency={currency} />
                 </div>
 

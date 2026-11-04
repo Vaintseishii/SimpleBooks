@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, ChevronDown, ListFilter, Search } from "lucide-react";
+import { CalendarDays, ChevronDown, ListFilter, Search, Trash2 } from "lucide-react";
 import { StatusPill } from "./statusPill";
 import { formatMoney } from "~/lib/format";
 import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
@@ -21,10 +21,11 @@ type ExpensesTableProps = {
     periods: Period[];
     onPeriodChange: (period: Period) => void;
     onMarkPaid: (id: string) => void;
+    onDelete: (id: string) => void;
     today: Date;
 };
 
-export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMarkPaid, today }: ExpensesTableProps) {
+export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMarkPaid, onDelete, today }: ExpensesTableProps) {
     // Rows show their own currency; the sum is a workspace-level figure.
     const currency = useWorkspaceCurrency();
     const [query, setQuery] = useState("");
@@ -129,6 +130,16 @@ export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMar
                                                 Mark paid
                                             </button>
                                         )}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (window.confirm("Delete this expense?")) onDelete(e.id);
+                                            }}
+                                            aria-label={`Delete expense: ${e.description}`}
+                                            className="rounded-xs p-1 text-fg-tertiary transition-colors duration-120 ease-out hover:bg-sunken hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus"
+                                        >
+                                            <Trash2 className="size-4" />
+                                        </button>
                                     </div>
                                 </td>
                                 <td className="pr-6 text-right font-mono text-num-m">{formatMoney(e.amount, e.currency)}</td>

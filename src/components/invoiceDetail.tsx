@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import NextLink from "next/link";
 import {
     ArrowUpRight,
     CheckCircle2,
@@ -8,6 +9,8 @@ import {
     Eye,
     Mail,
     MoreHorizontal,
+    Pencil,
+    Printer,
     Send,
     Trash2,
 } from "lucide-react";
@@ -123,7 +126,21 @@ export function InvoiceDetail({
                     </div>
                 </div>
 
-                <div className="flex shrink-0 gap-3">
+                <div className="flex shrink-0 items-center gap-3">
+                    <NextLink
+                        href={`/invoices/${invoice.id}/edit`}
+                        className={secondaryButton}
+                    >
+                        <Pencil className="size-4 mr-2" /> Edit
+                    </NextLink>
+                    <NextLink
+                        href={`/invoices/${invoice.id}/print`}
+                        target="_blank"
+                        rel="noopener"
+                        className={secondaryButton}
+                    >
+                        <Printer className="size-4 mr-2" /> Print
+                    </NextLink>
                     <div className="relative" onMouseEnter={() => setShowActions(true)} onMouseLeave={() => setShowActions(false)}>
                         <button
                             className="rounded-lg p-2 text-fg-tertiary hover:bg-sunken hover:text-fg-primary transition-colors focus-visible:outline-2 focus-visible:outline-border-focus"

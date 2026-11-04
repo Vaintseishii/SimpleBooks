@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StatCard } from "./statCard";
+import { SkeletonCard } from "./skeleton";
 import { formatMoney } from "~/lib/format";
 import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
 import { getDisplayStatus } from "~/lib/invoiceStatus";
@@ -21,8 +22,9 @@ export function OverviewStats() {
     // workspace default rather than any one record's currency.
     const currency = useWorkspaceCurrency();
     const [period, setPeriod] = useState<Period>("thisMonth");
-    const { data: pnl } = api.reports.profitAndLoss.useQuery({ period });
-    const { data: sent } = api.invoices.list.useQuery({ status: "SENT", take: 100 }); // sent = not paid yet
+    const { data: pnl, isPending: pnlPending } = api.reports.profitAndLoss.useQuery({ period });
+    const { data: sent, isPending: sentPending } = api.invoices.list.useQuery({ status: "SENT", take: 100 }); // sent = not paid yet
+    const pending = pnlPending || sentPending;
 
     const today = new Date();
     const unpaid = sent?.invoices ?? [];
@@ -69,31 +71,42 @@ export function OverviewStats() {
             </div>
 
             <div className="grid grid-cols-4 gap-6">
-                <StatCard
-                    label="Money in"
-                    value={pnl?.revenue ?? 0}
-                    currency={currency}
-                    note={`${plural(pnl?.invoiceCount ?? 0, "invoice")} paid ${when}`}
-                    gradient
-                />
-                <StatCard
-                    label="Money out"
-                    value={pnl?.totalExpenses ?? 0}
-                    currency={currency}
-                    note={`${plural(pnl?.expenseCount ?? 0, "paid expense")} ${when}`}
-                />
-                <StatCard
-                    label="Net income"
-                    value={pnl?.netProfit ?? 0}
-                    currency={currency}
-                    note="Money in, less business expenses"
-                />
-                <StatCard
-                    label="Outstanding"
-                    value={outstanding}
-                    currency={currency}
-                    note={`${formatMoney(overdueTotal, currency)} is overdue · ${plural(overdue.length, "invoice")}`}
-                />
+                {pending ? (
+                    <>
+                        <SkeletonCard className="h-32" />
+                        <SkeletonCard className="h-32" />
+                        <SkeletonCard className="h-32" />
+                        <SkeletonCard className="h-32" />
+                    </>
+                ) : (
+                    <>
+                        <StatCard
+                            label="Money in"
+                            value={pnl?.revenue ?? 0}
+                            currency={currency}
+                            note={`${plural(pnl?.invoiceCount ?? 0, "invoice")} paid ${when}`}
+                            gradient
+                        />
+                        <StatCard
+                            label="Money out"
+                            value={pnl?.totalExpenses ?? 0}
+                            currency={currency}
+                            note={`${plural(pnl?.expenseCount ?? 0, "paid expense")} ${when}`}
+                        />
+                        <StatCard
+                            label="Net income"
+                            value={pnl?.netProfit ?? 0}
+                            currency={currency}
+                            note="Money in, less business expenses"
+                        />
+                        <StatCard
+                            label="Outstanding"
+                            value={outstanding}
+                            currency={currency}
+                            note={`${formatMoney(overdueTotal, currency)} is overdue · ${plural(overdue.length, "invoice")}`}
+                        />
+                    </>
+                )}
             </div>
         </div>
     );

@@ -10,6 +10,7 @@ import {
   secondaryButton,
 } from "~/components/buttonStyles";
 import { errorClass, fieldClass, labelClass } from "~/components/fieldStyles";
+import { SkeletonRows } from "~/components/skeleton";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 type ClientRow = RouterOutputs["clients"]["list"][number];
@@ -200,9 +201,9 @@ export function ClientsView() {
           </div>
 
           {list.isPending ? (
-            <p className="border-t border-border-subtle p-6 text-body-m text-fg-tertiary">
-              Loading clients…
-            </p>
+            <div className="border-t border-border-subtle p-6">
+              <SkeletonRows rows={6} />
+            </div>
           ) : list.error ? (
             <p className="border-t border-border-subtle p-6 text-body-m text-status-overdue-fg">
               {list.error.message}

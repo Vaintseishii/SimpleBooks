@@ -114,6 +114,40 @@ export function createDraft(options: { today: Date; number: string }): InvoiceDr
 // A row counts once it has a description or an amount
 export const isFilled = (item: LineItemDraft) => item.description.trim() !== "" || lineAmount(item) > 0;
 
+/**
+ * Shapes a saved invoice (router byId output) back into editable form state.
+ * `quantity`/`unitPrice` accept Prisma `Decimal` as well as numbers/strings,
+ * so callers can pass the query result straight through.
+ */
+type Decimalish = number | string | { toString(): string };
+
+export function draftFromInvoice(invoice: {
+    clientId: string;
+    number: string;
+    issueDate: Date;
+    dueDate: Date;
+    items: {
+        description: string;
+        subDescription: string | null;
+        quantity: Decimalish;
+        unitPrice: Decimalish;
+    }[];
+}): InvoiceDraft {
+    return {
+        clientId: invoice.clientId,
+        number: invoice.number,
+        issueDate: toInputDate(new Date(invoice.issueDate)),
+        dueDate: toInputDate(new Date(invoice.dueDate)),
+        items: invoice.items.map((item) => ({
+            ...emptyLineItem(),
+            description: item.description,
+            subDescription: item.subDescription ?? "",
+            quantity: String(item.quantity),
+            unitPrice: String(item.unitPrice),
+        })),
+    };
+}
+
 // ---------- Validation ----------
 
 export function validateDraft(draft: InvoiceDraft, existingNumbers: string[], status: InvoiceStatus): DraftErrors {
@@ -129,13 +163,16 @@ export function validateDraft(draft: InvoiceDraft, existingNumbers: string[], st
     if (!due) errors.dueDate = "Pick a due date.";
     else if (issue && due < issue) errors.dueDate = "Due date can’t be before the issue date.";
 
-    // Drafts can be half-finished; a sent invoice needs real line items
+    // Every invoice needs at least one real line item, draft or not
     const filled = draft.items.filter(isFilled);
-    if (status === "SENT") {
-        if (filled.length === 0) errors.items = "Add at least one line item.";
-        else if (filled.some((item) => !item.description.trim())) errors.items = "Every line item needs a description.";
-        else if (filled.some((item) => toNumber(item.quantity) <= 0)) errors.items = "Quantity must be more than 0.";
-        else if (getTotals(draft).total <= 0) errors.items = "The total must be more than $0.00.";
+    if (filled.length === 0) {
+        errors.items = "Add at least one line item.";
+    } else if (filled.some((item) => !item.description.trim())) {
+        errors.items = "Every line item needs a description.";
+    } else if (filled.some((item) => toNumber(item.quantity) <= 0)) {
+        errors.items = "Quantity must be more than 0.";
+    } else if (status === "SENT" && getTotals(draft).total <= 0) {
+        errors.items = "The total must be more than 0.";
     }
 
     return errors;

@@ -5,6 +5,7 @@ import NextLink from "next/link";
 import { Info, Plus } from "lucide-react";
 import { api } from "~/trpc/react";
 import { StatCard } from "~/components/statCard";
+import { SkeletonCard, SkeletonRows } from "~/components/skeleton";
 import { InvoicesTable } from "~/components/invoicesTable";
 import { primaryButton } from "~/components/buttonStyles";
 import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
@@ -64,13 +65,13 @@ function InvoicesPageContent() {
                     </div>
                 </div>
                 <div className="grid grid-cols-4 gap-6">
-                    <StatCard label="Outstanding" value={0} currency={currency} note="Loading..." gradient />
-                    <StatCard label="Overdue" value={0} currency={currency} note="Loading..." />
-                    <StatCard label="Paid this month" value={0} currency={currency} note="Loading..." />
-                    <StatCard label="Drafts" value={0} currency={currency} note="Loading..." />
+                    <SkeletonCard className="h-32" />
+                    <SkeletonCard className="h-32" />
+                    <SkeletonCard className="h-32" />
+                    <SkeletonCard className="h-32" />
                 </div>
-                <div className="rounded-xl border border-border-default bg-surface shadow-card-elevated">
-                    <div className="p-6 text-center text-body-m text-fg-secondary">Loading invoices...</div>
+                <div className="rounded-xl border border-border-default bg-surface p-6 shadow-card-elevated">
+                    <SkeletonRows rows={6} />
                 </div>
             </div>
         );

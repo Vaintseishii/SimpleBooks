@@ -163,7 +163,10 @@
 }
 
 @layer utilities {
-    .card-gradient {
+    .card-gradient,
+    /* Tailwind does not generate `bg-card-gradient` from the two colour tokens
+       above, so the utility is declared here. Several components rely on it. */
+    .bg-card-gradient {
         background: linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end));
     }
     
@@ -186,4 +189,31 @@
     .shadow-card-hover {
         box-shadow: var(--shadow-card-hover);
     }
+}
+/* ---------- Printing ----------
+   Used by /invoices/[id]/print: hide the app chrome so the browser's
+   "Save as PDF" gets just the invoice. */
+@media print {
+    /* Buttons and chrome that should not appear on paper */
+    .print-chrome,
+    aside,
+    header {
+        display: none !important;
+    }
+
+    main {
+        padding: 0 !important;
+    }
+
+    main > div {
+        max-width: none !important;
+    }
+
+    body {
+        background: #ffffff !important;
+    }
+}
+
+@page {
+    margin: 14mm;
 }

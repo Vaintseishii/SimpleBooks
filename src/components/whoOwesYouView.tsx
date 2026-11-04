@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, Info, Plus } from "lucide-react";
 import { StatCard } from "./statCard";
+import { SkeletonCard, SkeletonRows } from "./skeleton";
 import { BalancesTable } from "./balancesTable";
 import { BalanceSummary } from "./balanceSummary";
 import { RecordPaymentForm, type PaymentInput } from "./recordPaymentForm";
@@ -32,6 +33,7 @@ export function WhoOwesYouView() {
     const billList = api.expenses.list.useQuery({ status: "UNPAID", take: 100 });
     const createPayment = api.invoices.createPayment.useMutation();
 
+    const pending = invoiceList.isPending || billList.isPending;
     const rows = invoiceList.data?.invoices ?? [];
     const unpaidBills = billList.data?.expenses ?? [];
     // Reshape the router rows into the Invoice type the table and form already use
@@ -105,46 +107,64 @@ export function WhoOwesYouView() {
             )}
 
             <div className="grid grid-cols-3 gap-6">
-                <StatCard
-                    label="Total owed to you"
-                    value={sumBalances(balances)}
-                    currency={currency}
-                    note={`${plural(clientCount(balances), "client")} · ${plural(balances.length, "outstanding invoice")}`}
-                    gradient
-                />
-                <StatCard
-                    label="Overdue"
-                    value={sumBalances(overdue)}
-                    currency={currency}
-                    note={
-                        overdue.length > 0
-                            ? `${plural(clientCount(overdue), "client")} · oldest invoice is ${plural(oldestOverdue, "day")} late`
-                            : "Nothing overdue. Everyone’s on time."
-                    }
-                    overdue={overdue.length > 0}
-                />
-                <StatCard
-                    label="Not yet due"
-                    value={sumBalances(notYetDue)}
-                    currency={currency}
-                    note={
-                        notYetDue.length > 0
-                            ? `${plural(notYetDue.length, "invoice")} due in the next ${plural(furthestDue, "day")}`
-                            : "No invoices waiting on a due date"
-                    }
-                />
+                {pending ? (
+                    <>
+                        <SkeletonCard className="h-32" />
+                        <SkeletonCard className="h-32" />
+                        <SkeletonCard className="h-32" />
+                    </>
+                ) : (
+                    <>
+                        <StatCard
+                            label="Total owed to you"
+                            value={sumBalances(balances)}
+                            currency={currency}
+                            note={`${plural(clientCount(balances), "client")} · ${plural(balances.length, "outstanding invoice")}`}
+                            gradient
+                        />
+                        <StatCard
+                            label="Overdue"
+                            value={sumBalances(overdue)}
+                            currency={currency}
+                            note={
+                                overdue.length > 0
+                                    ? `${plural(clientCount(overdue), "client")} · oldest invoice is ${plural(oldestOverdue, "day")} late`
+                                    : "Nothing overdue. Everyone’s on time."
+                            }
+                            overdue={overdue.length > 0}
+                        />
+                        <StatCard
+                            label="Not yet due"
+                            value={sumBalances(notYetDue)}
+                            currency={currency}
+                            note={
+                                notYetDue.length > 0
+                                    ? `${plural(notYetDue.length, "invoice")} due in the next ${plural(furthestDue, "day")}`
+                                    : "No invoices waiting on a due date"
+                            }
+                        />
+                    </>
+                )}
             </div>
 
             <div className="grid grid-cols-12 items-start gap-6">
                 <div className={`flex flex-col gap-6 ${paymentOpen ? "col-span-8" : "col-span-12"}`}>
-                    <BalancesTable balances={balances} currency={currency} />
-                    <BalanceSummary
-                        pendingIncome={sumBalances(balances)}
-                        invoiceCount={balances.length}
-                        unpaidBills={sumAmounts(unpaidBills)}
-                        billCount={unpaidBills.length}
-                        currency={currency}
-                    />
+                    {pending ? (
+                        <div className="rounded-lg border border-border-default bg-surface p-6 shadow-card-elevated">
+                            <SkeletonRows rows={6} />
+                        </div>
+                    ) : (
+                        <>
+                            <BalancesTable balances={balances} currency={currency} />
+                            <BalanceSummary
+                                pendingIncome={sumBalances(balances)}
+                                invoiceCount={balances.length}
+                                unpaidBills={sumAmounts(unpaidBills)}
+                                billCount={unpaidBills.length}
+                                currency={currency}
+                            />
+                        </>
+                    )}
                 </div>
 
                 {paymentOpen && (
