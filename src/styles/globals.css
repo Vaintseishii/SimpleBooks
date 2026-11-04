@@ -11,9 +11,9 @@
     --color-surface: #ffffff;       /* cards, panels, tables */
     --color-sunken: #f3f6f1;        /* table headers, input wells */
     --color-inverse: #131c17;       /* tooltips, inverse chips */
-    --color-accent: #2c5f47;        /* primary buttons, emphasis */
-    --color-accent-hover: #1f4f3b;
-    --color-accent-soft: #eef4f0;   /* active nav, selected rows, callouts */
+    --color-accent: #027528;        /* primary buttons, emphasis */
+    --color-accent-hover: #01562f;
+    --color-accent-soft: #e8f5f0;   /* active nav, selected rows, callouts */
     --color-scrim: rgb(19 28 23 / 0.24);
 
     /* ---------- Card Gradients ---------- */
@@ -26,7 +26,7 @@
     --color-fg-tertiary: #78877c;   /* metadata, captions, placeholders */
     --color-fg-disabled: #a3afa4;
     --color-fg-inverse: #ffffff;
-    --color-fg-accent: #2c5f47;     /* links, active labels */
+    --color-fg-accent: #027528;     /* links, active labels */
     --color-fg-on-accent: #ffffff;
     --color-fg-on-gradient: #e8f5f0;
 
@@ -34,30 +34,30 @@
     --color-border-subtle: #e8ede7;  /* hairlines, table dividers */
     --color-border-default: #dce3db; /* inputs, card edges */
     --color-border-strong: #c7d0c6;
-    --color-border-accent: #2c5f47;  /* active input */
-    --color-border-focus: #3f7359;   /* 2px focus ring */
+    --color-border-accent: #027528;  /* active input */
+    --color-border-focus: #027528;   /* 2px focus ring */
 
     /* ---------- Status (tint bg + text) ---------- */
     --color-status-draft: #e8ede7;
     --color-status-draft-fg: #45544b;
     --color-status-sent: #eff3f8;
     --color-status-sent-fg: #445c7c;
-    --color-status-paid: #eef4f0;
-    --color-status-paid-fg: #1f4f3b;
-    --color-status-paid-solid: #1f4f3b;
+    --color-status-paid: #e8f5f0;
+    --color-status-paid-fg: #01562f;
+    --color-status-paid-solid: #01562f;
     --color-status-overdue: #fbeee9;
     --color-status-overdue-fg: #984534;
     --color-status-unpaid: #f9f3e3;
     --color-status-unpaid-fg: #7c6020;
 
     /* ---------- Chart series (fixed order, max 6) ---------- */
-    --color-chart-1: #3f7359;       /* revenue, money in */
+    --color-chart-1: #027528;       /* revenue, money in */
     --color-chart-2: #7690b2;       /* committed, money out */
     --color-chart-3: #b48f35;       /* pending */
     --color-chart-4: #dc9c84;       /* overdue */
     --color-chart-5: #86638e;       /* plum */
     --color-chart-6: #47837e;       /* teal */
-    --color-chart-positive: #2c5f47;
+    --color-chart-positive: #027528;
     --color-chart-negative: #b25540;
     --color-chart-warning: #97762a;
     --color-chart-neutral: #a3afa4;
@@ -165,6 +165,14 @@
 @layer utilities {
     .card-gradient {
         background: linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end));
+    }
+    
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end));
+    }
+    
+    .btn-gradient:hover {
+        background: linear-gradient(135deg, var(--color-card-gradient-end), var(--color-card-gradient-start));
     }
     
     .text-on-gradient {
