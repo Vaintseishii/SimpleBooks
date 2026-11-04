@@ -2,27 +2,36 @@ import { formatMoney } from "~/lib/format";
 
 type StatCardProps = {
     label: string;
-    value: number | string; // numbers are shown as money, strings as-is (e.g. "5 of 6", "Travel")
+    value: number | string;
     note: string;
     currency?: string; // only used when value is money
     highlight?: boolean;
     overdue?: boolean;
+    gradient?: boolean;
 };
 
-export function StatCard({ label, value, note, currency, highlight = false, overdue = false }: StatCardProps) {
-    const muted = highlight ? "text-fg-on-accent/80" : "text-fg-secondary";
-    const valueColor = overdue ? "text-status-overdue-fg" : "";
-    const noteColor = overdue ? "text-status-overdue-fg" : muted;
+export function StatCard({ label, value, note, currency, highlight = false, overdue = false, gradient = false }: StatCardProps) {
     const isMoney = typeof value === "number";
+    const valueColor = overdue ? "text-status-overdue-fg" : "";
+
+    const baseCard = "rounded-xl border p-6 transition-shadow duration-200 ease-out";
+    const shadowClass = "shadow-card-elevated hover:shadow-card-hover";
+    
+    let cardClass = baseCard;
+    if (gradient || highlight) {
+        cardClass += " card-gradient text-on-gradient border-transparent";
+    } else {
+        cardClass += " border-border-default bg-surface";
+    }
+    cardClass += ` ${shadowClass}`;
+
+    const muted = (gradient || highlight) ? "text-on-gradient/70" : "text-fg-secondary";
+    const noteColor = overdue ? "text-status-overdue-fg" : muted;
 
     return (
-        <div
-            className={`rounded-lg border p-6 shadow-card ${
-                highlight ? "border-accent bg-accent text-fg-on-accent" : "border-border-default bg-surface"
-            }`}
-        >
+        <div className={cardClass}>
             <p className={`text-body-s ${muted}`}>{label}</p>
-            <p className={`mt-3 text-num-l ${isMoney ? "font-mono" : ""} ${valueColor}`}>
+            <p className={`mt-3 text-num-l font-semibold ${valueColor}`}>
                 {isMoney ? formatMoney(value, currency) : value}
             </p>
             <p className={`mt-3 text-caption ${noteColor}`}>{note}</p>

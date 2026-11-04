@@ -22,7 +22,7 @@ export function BalanceSummary({ pendingIncome, invoiceCount, unpaidBills, billC
     ];
 
     return (
-        <section className="rounded-lg border border-border-default bg-surface p-6 shadow-card">
+        <section className="rounded-lg border border-border-default bg-surface p-6 shadow-card-elevated hover:shadow-card-hover transition-shadow duration-200 ease-out">
             <div className="flex items-baseline justify-between gap-4">
                 <h2 className="text-title-section">Coming in vs. going out</h2>
                 <NextLink

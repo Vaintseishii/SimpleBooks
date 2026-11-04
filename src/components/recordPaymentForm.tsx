@@ -50,7 +50,7 @@ export function RecordPaymentForm({ balances, initialInvoiceId, today, onSave, o
                 e.preventDefault();
                 save();
             }}
-            className="rounded-lg border border-border-default bg-surface p-6 shadow-card"
+            className="rounded-lg border border-border-default bg-surface p-6 shadow-card-elevated hover:shadow-card-hover transition-shadow duration-200 ease-out"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>

@@ -4,16 +4,21 @@
     /* ---------- Fonts ---------- */
     --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+    --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
     /* ---------- Backgrounds ---------- */
     --color-canvas: #f5f5f2;        /* app canvas, sidebar */
     --color-surface: #ffffff;       /* cards, panels, tables */
     --color-sunken: #f3f6f1;        /* table headers, input wells */
     --color-inverse: #131c17;       /* tooltips, inverse chips */
-    --color-accent: #2c5f47;        /* primary buttons, emphasis */
-    --color-accent-hover: #1f4f3b;
-    --color-accent-soft: #eef4f0;   /* active nav, selected rows, callouts */
+    --color-accent: #027528;        /* primary buttons, emphasis */
+    --color-accent-hover: #01562f;
+    --color-accent-soft: #e8f5f0;   /* active nav, selected rows, callouts */
     --color-scrim: rgb(19 28 23 / 0.24);
+
+    /* ---------- Card Gradients ---------- */
+    --color-card-gradient-start: #027528;
+    --color-card-gradient-end: #01562f;
 
     /* ---------- Text ---------- */
     --color-fg-primary: #131c17;    /* titles, values, table headers */
@@ -21,37 +26,38 @@
     --color-fg-tertiary: #78877c;   /* metadata, captions, placeholders */
     --color-fg-disabled: #a3afa4;
     --color-fg-inverse: #ffffff;
-    --color-fg-accent: #2c5f47;     /* links, active labels */
+    --color-fg-accent: #027528;     /* links, active labels */
     --color-fg-on-accent: #ffffff;
+    --color-fg-on-gradient: #e8f5f0;
 
     /* ---------- Borders ---------- */
     --color-border-subtle: #e8ede7;  /* hairlines, table dividers */
     --color-border-default: #dce3db; /* inputs, card edges */
     --color-border-strong: #c7d0c6;
-    --color-border-accent: #2c5f47;  /* active input */
-    --color-border-focus: #3f7359;   /* 2px focus ring */
+    --color-border-accent: #027528;  /* active input */
+    --color-border-focus: #027528;   /* 2px focus ring */
 
     /* ---------- Status (tint bg + text) ---------- */
     --color-status-draft: #e8ede7;
     --color-status-draft-fg: #45544b;
     --color-status-sent: #eff3f8;
     --color-status-sent-fg: #445c7c;
-    --color-status-paid: #eef4f0;
-    --color-status-paid-fg: #1f4f3b;
-    --color-status-paid-solid: #1f4f3b;
+    --color-status-paid: #e8f5f0;
+    --color-status-paid-fg: #01562f;
+    --color-status-paid-solid: #01562f;
     --color-status-overdue: #fbeee9;
     --color-status-overdue-fg: #984534;
     --color-status-unpaid: #f9f3e3;
     --color-status-unpaid-fg: #7c6020;
 
     /* ---------- Chart series (fixed order, max 6) ---------- */
-    --color-chart-1: #3f7359;       /* revenue, money in */
+    --color-chart-1: #027528;       /* revenue, money in */
     --color-chart-2: #7690b2;       /* committed, money out */
     --color-chart-3: #b48f35;       /* pending */
     --color-chart-4: #dc9c84;       /* overdue */
     --color-chart-5: #86638e;       /* plum */
     --color-chart-6: #47837e;       /* teal */
-    --color-chart-positive: #2c5f47;
+    --color-chart-positive: #027528;
     --color-chart-negative: #b25540;
     --color-chart-warning: #97762a;
     --color-chart-neutral: #a3afa4;
@@ -61,70 +67,72 @@
     --color-text: var(--color-fg-primary);
 
     /* ---------- Type scale (15 styles) ---------- */
-    --text-display-hero: 2rem;
-    --text-display-hero--line-height: 2.375rem;
-    --text-display-hero--letter-spacing: -0.015em;
-    --text-display-hero--font-weight: 600;
+    --text-display-hero: 2.5rem;
+    --text-display-hero--line-height: 2.875rem;
+    --text-display-hero--letter-spacing: -0.02em;
+    --text-display-hero--font-weight: 700;
 
-    --text-display-page: 1.75rem;
-    --text-display-page--line-height: 2.125rem;
-    --text-display-page--letter-spacing: -0.01em;
-    --text-display-page--font-weight: 600;
+    --text-display-page: 2rem;
+    --text-display-page--line-height: 2.375rem;
+    --text-display-page--letter-spacing: -0.015em;
+    --text-display-page--font-weight: 700;
 
-    --text-title-section: 1.25rem;
-    --text-title-section--line-height: 1.625rem;
-    --text-title-section--letter-spacing: -0.005em;
+    --text-title-section: 1.5rem;
+    --text-title-section--line-height: 1.875rem;
+    --text-title-section--letter-spacing: -0.01em;
     --text-title-section--font-weight: 600;
 
-    --text-title-card: 0.9375rem;
-    --text-title-card--line-height: 1.25rem;
+    --text-title-card: 1.125rem;
+    --text-title-card--line-height: 1.5rem;
+    --text-title-card--letter-spacing: -0.005em;
     --text-title-card--font-weight: 600;
 
-    --text-body-l: 0.9375rem;
-    --text-body-l--line-height: 1.375rem;
+    --text-body-l: 1.0625rem;
+    --text-body-l--line-height: 1.5rem;
 
-    --text-body-m: 0.875rem;
-    --text-body-m--line-height: 1.25rem;
+    --text-body-m: 1rem;
+    --text-body-m--line-height: 1.375rem;
 
-    --text-body-s: 0.8125rem;
-    --text-body-s--line-height: 1.125rem;
+    --text-body-s: 0.9375rem;
+    --text-body-s--line-height: 1.25rem;
 
-    --text-label-m: 0.8125rem;
-    --text-label-m--line-height: 1rem;
+    --text-label-m: 0.9375rem;
+    --text-label-m--line-height: 1.125rem;
     --text-label-m--letter-spacing: 0.01em;
     --text-label-m--font-weight: 500;
 
-    --text-label-s: 0.75rem;
+    --text-label-s: 0.8125rem;
     --text-label-s--line-height: 1rem;
     --text-label-s--letter-spacing: 0.01em;
     --text-label-s--font-weight: 500;
 
-    --text-overline: 0.6875rem;
-    --text-overline--line-height: 0.875rem;
-    --text-overline--letter-spacing: 0.09em;
+    --text-overline: 0.75rem;
+    --text-overline--line-height: 1rem;
+    --text-overline--letter-spacing: 0.08em;
     --text-overline--font-weight: 600;
 
-    --text-caption: 0.75rem;
-    --text-caption--line-height: 1rem;
+    --text-caption: 0.8125rem;
+    --text-caption--line-height: 1.125rem;
     --text-caption--letter-spacing: 0.005em;
 
-    /* numeric styles: always pair with font-mono */
-    --text-num-hero: 2.25rem;
-    --text-num-hero--line-height: 2.625rem;
-    --text-num-hero--letter-spacing: -0.01em;
-    --text-num-hero--font-weight: 500;
+    /* numeric styles: larger, bolder, sans-serif instead of mono */
+    --text-num-hero: 3rem;
+    --text-num-hero--line-height: 3.375rem;
+    --text-num-hero--letter-spacing: -0.02em;
+    --text-num-hero--font-weight: 800;
 
-    --text-num-l: 1.25rem;
-    --text-num-l--line-height: 1.625rem;
-    --text-num-l--letter-spacing: -0.005em;
-    --text-num-l--font-weight: 500;
+    --text-num-l: 1.75rem;
+    --text-num-l--line-height: 2.125rem;
+    --text-num-l--letter-spacing: -0.01em;
+    --text-num-l--font-weight: 800;
 
-    --text-num-m: 0.875rem;
-    --text-num-m--line-height: 1.25rem;
+    --text-num-m: 1.125rem;
+    --text-num-m--line-height: 1.5rem;
+    --text-num-m--font-weight: 700;
 
-    --text-num-s: 0.75rem;
-    --text-num-s--line-height: 1rem;
-    --text-num-s--letter-spacing: 0.005em;
+    --text-num-s: 0.9375rem;
+    --text-num-s--line-height: 1.25rem;
+    --text-num-s--font-weight: 700;
 
     /* ---------- Radius (no others exist) ---------- */
     --radius-xs: 4px;   /* checkbox, swatch, bar tops */
@@ -134,7 +142,8 @@
     --radius-xl: 16px;  /* dialogs, sheets */
 
     /* ---------- Elevation (ink-tinted, never black) ---------- */
-    --shadow-card: 0 1px 2px 0 rgb(19 28 23 / 0.08);
+    --shadow-card: 0 2px 8px -2px rgb(19 28 23 / 0.12), 0 1px 2px -1px rgb(19 28 23 / 0.08);
+    --shadow-card-hover: 0 8px 24px -4px rgb(19 28 23 / 0.18), 0 2px 6px -2px rgb(19 28 23 / 0.12);
     --shadow-raise: 0 4px 12px -2px rgb(19 28 23 / 0.16);
     --shadow-overlay: 0 16px 40px -8px rgb(19 28 23 / 0.24);
 
@@ -150,5 +159,31 @@
 @layer base {
     body {
         @apply bg-canvas text-fg-primary antialiased;
+    }
+}
+
+@layer utilities {
+    .card-gradient {
+        background: linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end));
+    }
+    
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end));
+    }
+    
+    .btn-gradient:hover {
+        background: linear-gradient(135deg, var(--color-card-gradient-end), var(--color-card-gradient-start));
+    }
+    
+    .text-on-gradient {
+        color: var(--color-fg-on-gradient);
+    }
+    
+    .shadow-card-elevated {
+        box-shadow: var(--shadow-card);
+    }
+    
+    .shadow-card-hover {
+        box-shadow: var(--shadow-card-hover);
     }
 }

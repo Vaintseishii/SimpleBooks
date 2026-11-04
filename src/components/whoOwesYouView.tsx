@@ -110,7 +110,7 @@ export function WhoOwesYouView() {
                     value={sumBalances(balances)}
                     currency={currency}
                     note={`${plural(clientCount(balances), "client")} · ${plural(balances.length, "outstanding invoice")}`}
-                    highlight
+                    gradient
                 />
                 <StatCard
                     label="Overdue"

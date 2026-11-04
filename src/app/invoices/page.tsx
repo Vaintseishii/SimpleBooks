@@ -64,12 +64,12 @@ function InvoicesPageContent() {
                     </div>
                 </div>
                 <div className="grid grid-cols-4 gap-6">
-                    <StatCard label="Outstanding" value={0} currency={currency} note="Loading..." highlight />
+                    <StatCard label="Outstanding" value={0} currency={currency} note="Loading..." gradient />
                     <StatCard label="Overdue" value={0} currency={currency} note="Loading..." />
                     <StatCard label="Paid this month" value={0} currency={currency} note="Loading..." />
                     <StatCard label="Drafts" value={0} currency={currency} note="Loading..." />
                 </div>
-                <div className="overflow-hidden rounded-lg border border-border-default bg-surface shadow-card">
+                <div className="rounded-xl border border-border-default bg-surface shadow-card-elevated">
                     <div className="p-6 text-center text-body-m text-fg-secondary">Loading invoices...</div>
                 </div>
             </div>
@@ -88,7 +88,7 @@ function InvoicesPageContent() {
                         </p>
                     </div>
                 </div>
-                <div className="rounded-lg border border-border-default bg-surface shadow-card p-6">
+                <div className="rounded-xl border border-border-default bg-surface shadow-card-elevated p-6">
                     <p className="text-body-m text-status-overdue-fg">Error loading invoices: {list.error.message}</p>
                     <button
                         onClick={() => list.refetch()}
@@ -124,7 +124,7 @@ function InvoicesPageContent() {
                     value={sum(sent.map((inv) => inv.total))}
                     currency={currency}
                     note={`${plural(sent.length, "sent invoice")} awaiting payment`}
-                    highlight
+                    gradient
                 />
                 <StatCard
                     label="Overdue"

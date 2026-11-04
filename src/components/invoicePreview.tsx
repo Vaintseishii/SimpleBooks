@@ -1,4 +1,5 @@
-import { BookOpenText, Lock } from "lucide-react";
+import Image from "next/image";
+import { Lock } from "lucide-react";
 import { formatMoney } from "~/lib/format";
 import type { CurrencyCode } from "~/lib/currencies";
 import { shortDate } from "~/lib/invoiceStatus";
@@ -36,12 +37,12 @@ export function InvoicePreview({ draft, totals, client, business, currency }: In
 
     return (
         <div>
-            <div className="rounded-lg border border-border-default bg-surface p-8 text-fg-secondary shadow-card">
+            <div className="rounded-lg border border-border-default bg-surface p-8 text-fg-secondary shadow-card-elevated hover:shadow-card-hover transition-shadow duration-200 ease-out">
                 {/* who it's from */}
                 <div className="flex items-start justify-between gap-6">
                     <div>
-                        <span className="flex size-11 items-center justify-center rounded-md bg-accent text-fg-on-accent">
-                            <BookOpenText className="size-6" aria-hidden />
+                        <span className="relative flex size-11 items-center justify-center overflow-hidden rounded-md bg-card-gradient p-1.5">
+                            <Image src="/logo-1024.png" alt="" fill className="rounded-sm" unoptimized />
                         </span>
                         <p className="mt-4 text-title-section text-fg-primary">{business.name}</p>
                         <div className="mt-2 text-caption">
@@ -118,9 +119,9 @@ export function InvoicePreview({ draft, totals, client, business, currency }: In
                 </table>
 
                 {/* total */}
-                <div className="mt-6 flex items-center justify-between rounded-md bg-accent-soft px-5 py-4">
-                    <span className="text-body-m text-fg-primary">Total due · {currency}</span>
-                    <span className="font-mono text-num-l text-fg-accent">{formatMoney(totals.total, currency)}</span>
+                <div className="mt-6 flex items-center justify-between rounded-md bg-card-gradient px-5 py-4">
+                    <span className="text-body-m text-fg-on-gradient">Total due · {currency}</span>
+                    <span className="font-mono text-num-l text-fg-on-gradient">{formatMoney(totals.total, currency)}</span>
                 </div>
             </div>
 

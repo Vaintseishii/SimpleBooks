@@ -74,7 +74,7 @@ export function OverviewStats() {
                     value={pnl?.revenue ?? 0}
                     currency={currency}
                     note={`${plural(pnl?.invoiceCount ?? 0, "invoice")} paid ${when}`}
-                    highlight
+                    gradient
                 />
                 <StatCard
                     label="Money out"

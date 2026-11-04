@@ -41,7 +41,7 @@ export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMar
     const count = `${visible.length} expense${visible.length === 1 ? "" : "s"}`;
 
     return (
-        <div className="overflow-hidden rounded-lg border border-border-default bg-surface shadow-card">
+        <div className="overflow-hidden rounded-lg border border-border-default bg-surface shadow-card-elevated hover:shadow-card-hover">
             {/* toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-4 p-6">
                 <label className="relative min-w-60 flex-1 basis-60 lg:max-w-xs">

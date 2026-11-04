@@ -6,11 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     return (
         <div className="flex min-h-screen bg-canvas">
             <aside
-                className="relative hidden w-[40%] max-w-xl shrink-0 flex-col justify-between overflow-hidden bg-accent-hover p-10 text-fg-on-accent lg:flex"
-                style={{
-                    backgroundImage:
-                        "radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.08), transparent 55%)",
-                }}
+                className="relative hidden w-[40%] max-w-xl shrink-0 flex-col justify-between overflow-hidden bg-card-gradient p-10 text-fg-on-gradient lg:flex"
             >
                 <div className="flex items-center gap-2">
                     <BookOpenText className="size-5" aria-hidden />
@@ -19,21 +15,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
                 <figure className="max-w-sm">
                     <div className="mb-6 h-px w-10 bg-fg-on-accent/40" />
-                    <blockquote className="text-title-section text-fg-on-accent">
+                    <blockquote className="text-title-section text-fg-on-gradient">
                         Month-end went from two evenings to twenty minutes.
                     </blockquote>
                     <figcaption className="mt-6 flex items-center gap-3">
-                        <div className="flex size-9 items-center justify-center rounded-full bg-fg-on-accent/15 text-label-s">
+                        <div className="flex size-9 items-center justify-center rounded-full bg-fg-on-gradient/15 text-label-s">
                             MC
                         </div>
                         <div className="flex flex-col">
                             <span className="text-label-m">Maya Chen</span>
-                            <span className="text-caption text-fg-on-accent/70">Owner, Alder Studio</span>
+                            <span className="text-caption text-fg-on-gradient/70">Owner, Alder Studio</span>
                         </div>
                     </figcaption>
                 </figure>
 
-                <p className="text-caption text-fg-on-accent/60">
+                <p className="text-caption text-fg-on-gradient/60">
                     © {new Date().getFullYear()} SimpleBooks · Built for small businesses
                 </p>
             </aside>

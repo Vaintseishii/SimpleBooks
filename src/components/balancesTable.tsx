@@ -39,7 +39,7 @@ export function BalancesTable({ balances, currency }: BalancesTableProps) {
     ];
 
     return (
-        <div className="overflow-hidden rounded-lg border border-border-default bg-surface shadow-card">
+        <div className="overflow-hidden rounded-lg border border-border-default bg-surface shadow-card-elevated hover:shadow-card-hover">
             {/* tabs + sort */}
             <div className="flex items-center justify-between gap-4 px-6">
                 <div role="tablist" aria-label="Balances" className="flex gap-6">
