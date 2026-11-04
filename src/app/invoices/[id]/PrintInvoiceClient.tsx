@@ -57,7 +57,7 @@ export function PrintInvoiceClient() {
         <div>
             {/* Toolbar — never appears on paper */}
             <div className="print-chrome mx-auto mb-6 flex max-w-3xl items-center justify-between gap-3">
-                <Link href="/invoices" className={secondaryButton}>
+                <Link href={`/invoices/${id}`} className={secondaryButton}>
                     Back to invoice
                 </Link>
                 <button type="button" onClick={() => window.print()} className={primaryButton}>

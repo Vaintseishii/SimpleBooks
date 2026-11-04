@@ -58,7 +58,7 @@ export function EditInvoiceClient() {
     const { data: invoice, isPending: invoicePending, error: invoiceError } =
         api.invoices.byId.useQuery({ id });
 
-    const { data: clientsData } = api.clients.list.useQuery({
+    const { data: clientsData, isPending: clientsPending } = api.clients.list.useQuery({
         search: undefined,
         take: 100,
         skip: 0,
@@ -77,7 +77,10 @@ export function EditInvoiceClient() {
 
     const updateInvoice = api.invoices.update.useMutation({
         onSuccess: async () => {
-            await utils.invoices.list.invalidate();
+            await Promise.all([
+                utils.invoices.list.invalidate(),
+                utils.invoices.byId.invalidate({ id }),
+            ]);
         },
     });
 
@@ -106,8 +109,9 @@ export function EditInvoiceClient() {
         });
     }, [invoice]);
 
-    // The form seeds its currency picker once, so wait for the stored default.
-    if (invoicePending || workspaceQuery.isPending) {
+    // The form seeds its currency and its client list once, so wait for both —
+    // otherwise "Bill to" renders blank until the clients query lands.
+    if (invoicePending || workspaceQuery.isPending || clientsPending) {
         return <EditInvoiceSkeleton />;
     }
 
@@ -129,19 +133,22 @@ export function EditInvoiceClient() {
     };
 
     return (
-        <InvoiceForm
-            clients={clients}
-            workspace={workspace}
-            existingNumbers={existingNumbers}
-            today={today}
-            initialDraft={initialDraft}
-            mode="edit"
-            onSave={async (input) => {
-                await updateInvoice.mutateAsync({ id, ...input });
-                router.push("/invoices");
-            }}
-            isSaving={updateInvoice.isPending}
-            onBusinessChange={(details) => updateDetails.mutate(details)}
-        />
+        <div className="flex flex-col gap-6">
+            <InvoiceForm
+                clients={clients}
+                workspace={workspace}
+                existingNumbers={existingNumbers}
+                today={today}
+                initialDraft={initialDraft}
+                initialStatus={invoice.status}
+                mode="edit"
+                onSave={async (input) => {
+                    await updateInvoice.mutateAsync({ id, ...input });
+                    router.push("/invoices");
+                }}
+                isSaving={updateInvoice.isPending}
+                onBusinessChange={(details) => updateDetails.mutate(details)}
+            />
+        </div>
     );
 }

@@ -43,7 +43,10 @@ export function ExpensesView() {
     const updateExpense = api.expenses.update.useMutation();
     const deleteExpense = api.expenses.delete.useMutation({
         onSuccess: async () => {
-            await utils.expenses.list.invalidate();
+            await Promise.all([
+                utils.expenses.list.invalidate(),
+                utils.reports.profitAndLoss.invalidate(),
+            ]);
         },
     });
 
@@ -194,7 +197,11 @@ export function ExpensesView() {
                             today={today}
                         />
                     )}
-                    <CategoryBreakdown expenses={inRange} periodLabel={rangeName} currency={currency} />
+                    {expenseList.isPending ? (
+                        <SkeletonCard className="h-40" />
+                    ) : (
+                        <CategoryBreakdown expenses={inRange} periodLabel={rangeName} currency={currency} />
+                    )}
                 </div>
 
                 {formOpen && (

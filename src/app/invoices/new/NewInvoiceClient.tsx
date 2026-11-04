@@ -45,7 +45,7 @@ export function NewInvoiceClient() {
     const existingNumbers = invoicesData?.invoices.map((inv) => inv.number) ?? [];
     const today = new Date();
 
-    // The form seeds its currency picker once, so wait for the stored default.
+    // The form seeds its currency once, so wait for the stored default.
     if (workspaceQuery.isPending) {
         return (
             <p className="text-body-m text-fg-secondary">Loading invoice form…</p>

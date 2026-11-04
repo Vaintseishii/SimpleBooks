@@ -30,6 +30,8 @@ type InvoiceFormProps = {
     today: Date;
     /** Editing an existing invoice: seed the form from it instead of a blank draft. */
     initialDraft?: InvoiceDraft;
+    /** In edit mode, "save without sending" keeps this status instead of forcing DRAFT. */
+    initialStatus?: InvoiceStatus;
     mode?: "create" | "edit";
     onSave: (input: InvoiceInput) => Promise<unknown>;
     isSaving: boolean;
@@ -50,6 +52,7 @@ export function InvoiceForm({
     existingNumbers,
     today,
     initialDraft,
+    initialStatus,
     mode = "create",
     onSave,
     isSaving,
@@ -63,6 +66,7 @@ export function InvoiceForm({
     );
     const [errors, setErrors] = useState<DraftErrors>({});
     const [saved, setSaved] = useState<{ status: InvoiceStatus; number: string } | null>(null);
+    const [saveError, setSaveError] = useState<string | null>(null);
     // One currency per workspace now, so there is nothing to pick here.
     const [currency] = useState<CurrencyCode>(() =>
         toCurrencyCode(workspace.currency),
@@ -96,20 +100,24 @@ export function InvoiceForm({
     }
 
     async function save(status: InvoiceStatus) {
+        setSaveError(null);
         const found = validateDraft(draft, existingNumbers, status);
-        setErrors(found);
         if (Object.values(found).some(Boolean)) {
             setSaved(null);
             return;
         }
 
-        const input = toInvoiceInput(draft, status, currency, new Date());
+        // "Save without sending" must not undo a status the invoice already has.
+        const nextStatus =
+            mode === "edit" && status === "DRAFT" ? initialStatus ?? "DRAFT" : status;
+        const input = toInvoiceInput(draft, nextStatus, currency, new Date());
         try {
             await onSave(input);
             setSaved({ status, number: input.number });
         } catch (err) {
-            // Error handled by the mutation
-            console.error("Failed to save invoice:", err);
+            setSaveError(
+                err instanceof Error ? err.message : "Couldn’t save the invoice. Please try again.",
+            );
             setSaved(null);
         }
     }
@@ -147,6 +155,15 @@ export function InvoiceForm({
                     </button>
                 </div>
             </div>
+
+            {saveError && (
+                <p
+                    role="alert"
+                    className="rounded-lg border border-status-overdue-fg/30 bg-status-overdue p-4 text-body-m text-status-overdue-fg"
+                >
+                    {saveError}
+                </p>
+            )}
 
             {saved && (
                 <div role="status" className="flex items-start gap-3 rounded-lg border border-border-default bg-accent-soft p-4 text-body-m text-fg-primary">
