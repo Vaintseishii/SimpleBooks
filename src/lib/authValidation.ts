@@ -37,18 +37,23 @@ export function passwordRequirements(password: string): PasswordRequirement[] {
     ];
 }
 
+// The user's display name. Shared by sign-up and the profile page.
+export const nameSchema = z.object({
+    firstName: z
+        .string()
+        .trim()
+        .min(1, "Enter your first name")
+        .max(40, "Keep it under 40 characters"),
+    lastName: z
+        .string()
+        .trim()
+        .min(1, "Enter your last name")
+        .max(40, "Keep it under 40 characters"),
+});
+
 export const signUpSchema = z
     .object({
-        firstName: z
-            .string()
-            .trim()
-            .min(1, "Enter your first name")
-            .max(40, "Keep it under 40 characters"),
-        lastName: z
-            .string()
-            .trim()
-            .min(1, "Enter your last name")
-            .max(40, "Keep it under 40 characters"),
+        ...nameSchema.shape,
         email: z.string().trim().toLowerCase().email("Enter a valid email"),
         password: z
             .string()

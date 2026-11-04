@@ -2,6 +2,7 @@ import { clientRouter } from "~/server/api/routers/client";
 import { expenseRouter } from "~/server/api/routers/expense";
 import { invoiceRouter } from "~/server/api/routers/invoice";
 import { reportRouter } from "~/server/api/routers/report";
+import { userRouter } from "~/server/api/routers/user";
 import { vendorRouter } from "~/server/api/routers/vendor";
 import { workspaceRouter } from "~/server/api/routers/workspace";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   expenses: expenseRouter,
   invoices: invoiceRouter,
   reports: reportRouter,
+  users: userRouter,
   vendors: vendorRouter,
   workspace: workspaceRouter,
 });

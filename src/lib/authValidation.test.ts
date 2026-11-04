@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { fullName, passwordRequirements, signUpSchema } from "./authValidation";
+import {
+  fullName,
+  nameSchema,
+  passwordRequirements,
+  signUpSchema,
+} from "./authValidation";
 
 const valid = {
   firstName: "Juan",
@@ -108,6 +113,23 @@ describe("signUpSchema", () => {
   it("requires confirmation", () => {
     const result = signUpSchema.safeParse({ ...valid, confirmPassword: "" });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("nameSchema", () => {
+  it("trims and requires both parts", () => {
+    const parsed = nameSchema.parse({ firstName: "  Sherwin ", lastName: " Sanol " });
+    expect(parsed).toEqual({ firstName: "Sherwin", lastName: "Sanol" });
+    expect(nameSchema.safeParse({ firstName: "", lastName: "Sanol" }).success).toBe(false);
+    expect(nameSchema.safeParse({ firstName: "Sherwin", lastName: "  " }).success).toBe(
+      false,
+    );
+  });
+
+  it("caps each part at 40 characters", () => {
+    expect(
+      nameSchema.safeParse({ firstName: "A".repeat(41), lastName: "Sanol" }).success,
+    ).toBe(false);
   });
 });
 

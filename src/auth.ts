@@ -7,7 +7,9 @@ import { env } from "~/env";
 import { fullName, signInSchema } from "~/lib/authValidation";
 import { db } from "~/server/db";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+// `unstable_update` re-issues the session so a name change shows up without
+// signing out and back in.
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ...authConfig,
   secret: env.AUTH_SECRET,
   providers: [
