@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 // ──────────────────────────────────────────────────────────────────────
 // normalizeToNull — the pure function from crud.ts
@@ -58,6 +58,12 @@ const crudIdInput = z.object({
 
 const createInput = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Name is too long"),
+  contactName: z
+    .string()
+    .trim()
+    .max(120, "Contact name is too long")
+    .optional()
+    .or(z.literal("")),
   email: z
     .string()
     .trim()
@@ -79,7 +85,6 @@ const createInput = z.object({
     .or(z.literal("")),
 });
 
-const updateInput = createInput.partial().extend({ id: z.string().min(1, "An id is required") });
 
 describe("crud input schemas", () => {
   it("crudListInput defaults take=50 and skip=0", () => {
@@ -104,18 +109,21 @@ describe("crud input schemas", () => {
     expect(createInput.parse({ name: "Acme", email: "a@b.com" })).toBeDefined();
     expect(createInput.parse({ name: "Acme", email: "" })).toBeDefined();
   });
+
+  it("createInput accepts contactName, empty literal, and enforces max", () => {
+    expect(
+      createInput.parse({ name: "Acme", contactName: "Ana Garcia" }),
+    ).toBeDefined();
+    expect(createInput.parse({ name: "Acme", contactName: "" })).toBeDefined();
+    expect(() =>
+      createInput.parse({ name: "Acme", contactName: "A".repeat(121) }),
+    ).toThrow();
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────
 // CRUD logic patterns — delegate contracts
 // ──────────────────────────────────────────────────────────────────────
-
-type Row = {
-  id: string;
-  userId: string;
-  name: string;
-  email: string | null;
-};
 
 // Test helpers (no tRPC import needed)
 function makeWhere(userId: string): Record<string, unknown> {
@@ -174,7 +182,6 @@ describe("ownership isolation", () => {
   it("different userId rows are invisible to all five procedures", () => {
     const user1 = "user-1";
     const user2 = "user-2";
-    const rowId = "r1";
 
     // All five procedures share the same scoping invariant:
     // userId from context, never from the request body.

@@ -1,0 +1,133 @@
+import Image from "next/image";
+import { Lock } from "lucide-react";
+import { formatMoney } from "~/lib/format";
+import type { CurrencyCode } from "~/lib/currencies";
+import { shortDate } from "~/lib/invoiceStatus";
+import {
+    daysBetween,
+    fromInputDate,
+    isFilled,
+    lineAmount,
+    plainMoney,
+    toNumber,
+    type InvoiceDraft,
+    type Totals,
+} from "~/lib/invoiceDraft";
+import type { ClientOption } from "~/lib/sampleBilling";
+
+type InvoicePreviewProps = {
+    draft: InvoiceDraft;
+    totals: Totals;
+    client: ClientOption | undefined;
+    business: { name: string; address: string | null; email: string | null };
+    currency: CurrencyCode;
+};
+
+const formatQty = (value: string) => {
+    const n = toNumber(value);
+    return Number.isInteger(n) ? String(n) : n.toFixed(2);
+};
+
+export function InvoicePreview({ draft, totals, client, business, currency }: InvoicePreviewProps) {
+    const issue = fromInputDate(draft.issueDate);
+    const due = fromInputDate(draft.dueDate);
+    const terms = issue && due && due >= issue ? daysBetween(issue, due) : null;
+    const items = draft.items.filter(isFilled);
+    const number = draft.number.trim().toUpperCase() || "INV-—";
+
+    return (
+        <div>
+            <div className="rounded-lg border border-border-default bg-surface p-8 text-fg-secondary shadow-card-elevated hover:shadow-card-hover transition-shadow duration-200 ease-out">
+                {/* who it's from */}
+                <div className="flex items-start justify-between gap-6">
+                    <div>
+                        <span className="relative flex size-11 items-center justify-center overflow-hidden rounded-md bg-card-gradient p-1.5">
+                            <Image src="/logo-1024.png" alt="" fill className="rounded-sm" unoptimized />
+                        </span>
+                        <p className="mt-4 text-title-section text-fg-primary">{business.name}</p>
+                        <div className="mt-2 text-caption">
+                            {business.address && <p className="whitespace-pre-line">{business.address}</p>}
+                            {business.email && <p>{business.email}</p>}
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-display-page text-fg-primary">Invoice</p>
+                        <p className="mt-2 font-mono text-num-s text-fg-tertiary">{number}</p>
+                    </div>
+                </div>
+
+                {/* who it's for */}
+                <div className="mt-8 flex justify-between gap-6 border-t border-border-subtle pt-6">
+                    <div className="min-w-0">
+                        <p className="text-overline uppercase text-fg-primary">Bill to</p>
+                        {client ? (
+                            <>
+                                <p className="mt-2 text-body-l text-fg-primary">{client.name}</p>
+                                <div className="mt-1 text-caption">
+                                    {client.contactName && <p>Attn: {client.contactName}</p>}
+                                    {client.address && <p>{client.address}</p>}
+                                    {client.email && <p>{client.email}</p>}
+                                </div>
+                            </>
+                        ) : (
+                            <p className="mt-2 text-body-m text-fg-tertiary">Choose a client to see it here.</p>
+                        )}
+                    </div>
+                    <dl className="grid shrink-0 grid-cols-[auto_auto] content-start gap-x-8 gap-y-2 text-caption">
+                        <dt>Issued</dt>
+                        <dd className="text-right font-mono text-num-s text-fg-primary">{issue ? shortDate.format(issue) : "—"}</dd>
+                        <dt>Due</dt>
+                        <dd className="text-right font-mono text-num-s text-fg-primary">{due ? shortDate.format(due) : "—"}</dd>
+                        {terms !== null && (
+                            <dd className="col-span-2 text-right">
+                                Payment terms: {terms === 0 ? "Due on receipt" : `Net ${terms}`}
+                            </dd>
+                        )}
+                    </dl>
+                </div>
+
+                {/* line items */}
+                <table className="mt-8 w-full text-left">
+                    <thead>
+                        <tr className="border-b border-accent text-overline uppercase text-fg-primary">
+                            <th className="pb-3 font-semibold">Description</th>
+                            <th className="pb-3 text-right font-semibold">Qty</th>
+                            <th className="pb-3 text-right font-semibold">Rate</th>
+                            <th className="pb-3 text-right font-semibold">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items.length === 0 && (
+                            <tr>
+                                <td colSpan={4} className="py-6 text-body-s text-fg-tertiary">
+                                    Your line items will show up here.
+                                </td>
+                            </tr>
+                        )}
+                        {items.map((item) => (
+                            <tr key={item.key} className="border-b border-border-subtle align-top">
+                                <td className="py-4 pr-4">
+                                    <p className="text-body-m text-fg-primary">{item.description || "Untitled item"}</p>
+                                    {item.subDescription && <p className="mt-1 text-caption">{item.subDescription}</p>}
+                                </td>
+                                <td className="py-4 text-right font-mono text-num-s">{formatQty(item.quantity)}</td>
+                                <td className="py-4 pl-4 text-right font-mono text-num-s">{plainMoney.format(toNumber(item.unitPrice))}</td>
+                                <td className="py-4 pl-4 text-right font-mono text-num-s text-fg-primary">{plainMoney.format(lineAmount(item))}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                {/* total */}
+                <div className="mt-6 flex items-center justify-between rounded-md bg-card-gradient px-5 py-4">
+                    <span className="text-body-m text-fg-on-gradient">Total due · {currency}</span>
+                    <span className="font-mono text-num-l text-fg-on-gradient">{formatMoney(totals.total, currency)}</span>
+                </div>
+            </div>
+
+            <p className="mt-4 flex items-center justify-center gap-2 text-caption text-fg-tertiary">
+                <Lock className="size-3.5" /> Only sent to your client when you’re ready.
+            </p>
+        </div>
+    );
+}

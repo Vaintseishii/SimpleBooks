@@ -1,14 +1,40 @@
-type StatCardProps = { label: string; value: number; note: string; highlight?: boolean };
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
 
-export function StatCard({ label, value, note, highlight = false }: StatCardProps) {
-    const muted = highlight ? "text-white/80" : "text-text-muted";
+type StatCardProps = {
+    label: string;
+    value: number | string;
+    note: string;
+    currency?: string; // only used when value is money
+    highlight?: boolean;
+    overdue?: boolean;
+    gradient?: boolean;
+};
+
+export function StatCard({ label, value, note, currency, highlight = false, overdue = false, gradient = false }: StatCardProps) {
+    const isMoney = typeof value === "number";
+    const valueColor = overdue ? "text-status-overdue-fg" : "";
+
+    const baseCard = "rounded-xl border p-6 transition-shadow duration-200 ease-out";
+    const shadowClass = "shadow-card-elevated hover:shadow-card-hover";
+    
+    let cardClass = baseCard;
+    if (gradient || highlight) {
+        cardClass += " card-gradient text-on-gradient border-transparent";
+    } else {
+        cardClass += " border-border-default bg-surface";
+    }
+    cardClass += ` ${shadowClass}`;
+
+    const muted = (gradient || highlight) ? "text-on-gradient/70" : "text-fg-secondary";
+    const noteColor = overdue ? "text-status-overdue-fg" : muted;
 
     return (
-        <div className={`rounded-2xl border p-6 ${highlight ? "border-brand bg-brand text-white" : "border-border bg-surface"}`}>
-            <p className={`text-sm ${muted}`}>{label}</p>
-            <p className="mt-3 text-3xl">{usd.format(value)}</p>
-            <p className={`mt-3 text-sm ${muted}`}>{note}</p>
+        <div className={cardClass}>
+            <p className={`text-body-s ${muted}`}>{label}</p>
+            <p className={`mt-3 text-num-l font-semibold ${valueColor}`}>
+                {isMoney ? formatMoney(value, currency) : value}
+            </p>
+            <p className={`mt-3 text-caption ${noteColor}`}>{note}</p>
         </div>
     );
 }
