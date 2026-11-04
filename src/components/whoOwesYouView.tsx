@@ -106,7 +106,7 @@ export function WhoOwesYouView() {
                     label="Total owed to you"
                     value={sumBalances(balances)}
                     note={`${plural(clientCount(balances), "client")} · ${plural(balances.length, "outstanding invoice")}`}
-                    highlight
+                    gradient
                 />
                 <StatCard
                     label="Overdue"
