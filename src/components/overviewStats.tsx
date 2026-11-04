@@ -29,8 +29,8 @@ export function OverviewStats() {
     const today = new Date();
     const unpaid = sent?.invoices ?? [];
     const overdue = unpaid.filter((inv) => getDisplayStatus(inv, today) === "overdue");
-    const outstanding = unpaid.reduce((sum, inv) => sum + inv.total, 0);
-    const overdueTotal = overdue.reduce((sum, inv) => sum + inv.total, 0);
+    const outstanding = unpaid.reduce((sum, inv) => sum + inv.balance, 0);
+    const overdueTotal = overdue.reduce((sum, inv) => sum + inv.balance, 0);
 
     const isMonth = period === "thisMonth";
     const shortMonth = today.toLocaleDateString("en-US", { month: "short" });

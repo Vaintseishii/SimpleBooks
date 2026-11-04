@@ -122,14 +122,14 @@ function InvoicesPageContent() {
             <div className="grid grid-cols-4 gap-6">
                 <StatCard
                     label="Outstanding"
-                    value={sum(sent.map((inv) => inv.total))}
+                    value={sum(sent.map((inv) => inv.balance))}
                     currency={currency}
                     note={`${plural(sent.length, "sent invoice")} awaiting payment`}
                     gradient
                 />
                 <StatCard
                     label="Overdue"
-                    value={sum(overdue.map((inv) => inv.total))}
+                    value={sum(overdue.map((inv) => inv.balance))}
                     currency={currency}
                     note={`${plural(overdue.length, "invoice")} ${overdue.length === 1 ? "needs" : "need"} a follow-up`}
                     overdue={overdue.length > 0}

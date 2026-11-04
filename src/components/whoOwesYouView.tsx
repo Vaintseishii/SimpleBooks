@@ -46,7 +46,7 @@ export function WhoOwesYouView() {
         dueDate: inv.dueDate,
         status: inv.status,
         currency: inv.currency,
-        total: inv.total,
+        total: inv.balance, // what is still owed after partial payments
         paidAt: inv.paidAt,
     }));
 
