@@ -11,7 +11,7 @@ export function CategoryBreakdown({ expenses, periodLabel }: CategoryBreakdownPr
     const totals = categoryBreakdown(expenses);
 
     return (
-        <section className="rounded-lg border border-border-default bg-surface p-6 shadow-card">
+        <section className="rounded-lg border border-border-default bg-surface p-6 shadow-card-elevated hover:shadow-card-hover transition-shadow duration-200 ease-out">
             <div className="flex items-baseline justify-between gap-4">
                 <h2 className="text-title-section">Where your money went</h2>
                 <span className="text-caption text-fg-tertiary">{periodLabel}</span>
