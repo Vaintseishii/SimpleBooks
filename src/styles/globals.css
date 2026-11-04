@@ -17,8 +17,8 @@
     --color-scrim: rgb(19 28 23 / 0.24);
 
     /* ---------- Card Gradients ---------- */
-    --color-card-gradient-start: #1e3a5f;
-    --color-card-gradient-end: #155a4a;
+    --color-card-gradient-start: #027528;
+    --color-card-gradient-end: #01562f;
 
     /* ---------- Text ---------- */
     --color-fg-primary: #131c17;    /* titles, values, table headers */
