@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import NextLink from "next/link";
 import { ArrowDownWideNarrow, CalendarDays, ChevronDown, Ellipsis, Search } from "lucide-react";
 import { StatusPill, type DisplayStatus } from "./statusPill";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
 import { getDisplayStatus, sameMonth, shortDate } from "~/lib/invoiceStatus";
 import type { Invoice } from "~/lib/sampleInvoices";
 
@@ -197,7 +197,7 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                                 <td>
                                     <StatusPill status={inv.displayStatus} />
                                 </td>
-                                <td className="text-right font-mono text-num-m">{usd.format(inv.total)}</td>
+                                <td className="text-right font-mono text-num-m">{formatMoney(inv.total, inv.currency)}</td>
                                 <td className="text-center">
                                     <button
                                         type="button"

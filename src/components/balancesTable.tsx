@@ -3,7 +3,7 @@
 import { useState } from "react";
 import NextLink from "next/link";
 import { ArrowUpRight, ArrowDownWideNarrow, ChevronDown } from "lucide-react";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
 import { dueLabel, sortBalances, sumBalances, type Balance, type SortOrder } from "~/lib/receivables";
 
 type Tab = "all" | "overdue";
@@ -23,9 +23,10 @@ const actionClass =
 
 type BalancesTableProps = {
     balances: Balance[];
+    currency: string; // for the total, which can span several currencies
 };
 
-export function BalancesTable({ balances }: BalancesTableProps) {
+export function BalancesTable({ balances, currency }: BalancesTableProps) {
     const [tab, setTab] = useState<Tab>("all");
     const [order, setOrder] = useState<SortOrder>("oldest");
 
@@ -108,7 +109,7 @@ export function BalancesTable({ balances }: BalancesTableProps) {
                                 </td>
                                 <td className="font-mono text-num-m text-fg-secondary">{b.invoice.number}</td>
                                 <td className="text-body-m text-fg-secondary">{rowDate.format(b.invoice.dueDate)}</td>
-                                <td className="text-right font-mono text-num-m text-fg-primary">{usd.format(b.amount)}</td>
+                                <td className="text-right font-mono text-num-m text-fg-primary">{formatMoney(b.amount, b.invoice.currency)}</td>
                                 <td className="pr-6 text-right">
                                     <NextLink href={`/invoices/${b.invoice.id}`} className={actionClass}>
                                         <ArrowUpRight className="size-4" /> View invoice
@@ -131,7 +132,7 @@ export function BalancesTable({ balances }: BalancesTableProps) {
             <div className="flex items-center justify-between border-t border-border-subtle px-6 py-5">
                 <p className="text-body-s text-fg-tertiary">Draft invoices are not included</p>
                 <p className="text-label-m text-fg-primary">
-                    Total <span className="ml-2 font-mono text-num-m">{usd.format(sumBalances(visible))}</span>
+                    Total <span className="ml-2 font-mono text-num-m">{formatMoney(sumBalances(visible), currency)}</span>
                 </p>
             </div>
         </div>

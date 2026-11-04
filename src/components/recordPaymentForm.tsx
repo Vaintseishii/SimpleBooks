@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { primaryButton, secondaryButton } from "./buttonStyles";
 import { errorClass, fieldClass, labelClass } from "./fieldStyles";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
 import { fromDateInput, toDateInput } from "~/lib/expenseDraft";
 import { dueLabel, type Balance } from "~/lib/receivables";
 
@@ -100,7 +100,7 @@ export function RecordPaymentForm({ balances, initialInvoiceId, today, onSave, o
                             {dueLabel(selected)}
                         </p>
                     </div>
-                    <p className="font-mono text-num-l text-fg-primary">{usd.format(selected.amount)}</p>
+                    <p className="font-mono text-num-l text-fg-primary">{formatMoney(selected.amount, selected.invoice.currency)}</p>
                 </div>
             )}
 
@@ -127,7 +127,7 @@ export function RecordPaymentForm({ balances, initialInvoiceId, today, onSave, o
 
             <div className="mt-6 flex gap-3">
                 <button type="submit" className={primaryButton}>
-                    Record {selected ? usd.format(selected.amount) : "payment"}
+                    Record {selected ? formatMoney(selected.amount, selected.invoice.currency) : "payment"}
                 </button>
                 <button type="button" onClick={onClose} className={secondaryButton}>
                     Cancel

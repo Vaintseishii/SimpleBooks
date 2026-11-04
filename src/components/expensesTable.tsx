@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { CalendarDays, ChevronDown, ListFilter, Search } from "lucide-react";
 import { StatusPill } from "./statusPill";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
+import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
 import { categoryIcons, categoryLabels, categoryOrder, periodLabel, sumAmounts, type Period } from "~/lib/expenseSummary";
 import type { Expense, ExpenseCategory, ExpenseStatus } from "~/lib/sampleExpenses";
 
@@ -24,6 +25,8 @@ type ExpensesTableProps = {
 };
 
 export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMarkPaid, today }: ExpensesTableProps) {
+    // Rows show their own currency; the sum is a workspace-level figure.
+    const currency = useWorkspaceCurrency();
     const [query, setQuery] = useState("");
     const [category, setCategory] = useState<ExpenseCategory | "all">("all");
     const [status, setStatus] = useState<ExpenseStatus | "all">("all");
@@ -128,7 +131,7 @@ export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMar
                                         )}
                                     </div>
                                 </td>
-                                <td className="pr-6 text-right font-mono text-num-m">{usd.format(e.amount)}</td>
+                                <td className="pr-6 text-right font-mono text-num-m">{formatMoney(e.amount, e.currency)}</td>
                             </tr>
                         );
                     })}
@@ -149,7 +152,7 @@ export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMar
                     {count} · {periodLabel(period, today)}
                 </span>
                 <span className="text-label-m">
-                    Total <span className="ml-2 font-mono text-num-m">{usd.format(sumAmounts(visible))}</span>
+                    Total <span className="ml-2 font-mono text-num-m">{formatMoney(sumAmounts(visible), currency)}</span>
                 </span>
             </div>
         </div>

@@ -15,7 +15,7 @@ import { api } from "~/trpc/react";
 import { StatusPill } from "./statusPill";
 import { primaryButton, secondaryButton } from "./buttonStyles";
 import { cardClass } from "./fieldStyles";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
 import { shortDate, getDisplayStatus } from "~/lib/invoiceStatus";
 import type { RouterOutputs } from "~/trpc/react";
 
@@ -43,6 +43,8 @@ export function InvoiceDetail({
     const displayStatus = getDisplayStatus(invoice, new Date());
     const totalPaid = invoice.payments?.reduce((sum, p) => sum + Number(p.amount), 0) ?? 0;
     const balance = Number(invoice.total) - totalPaid;
+    // Every amount on this page is in the invoice's own saved currency.
+    const money = (value: number) => formatMoney(value, invoice.currency);
 
     const updateInvoice = api.invoices.update.useMutation({
         onSuccess: async () => {
@@ -186,7 +188,7 @@ export function InvoiceDetail({
                                 Recording payment for <span className="font-mono">{invoice.number}</span>
                             </p>
                             <p className="text-body-m text-fg-secondary">
-                                Balance due: <span className="font-mono text-num-l text-fg-primary">{usd.format(balance)}</span>
+                                Balance due: <span className="font-mono text-num-l text-fg-primary">{money(balance)}</span>
                             </p>
 
                             <div>
@@ -199,7 +201,7 @@ export function InvoiceDetail({
                                     value={paymentAmount}
                                     onChange={(e) => setPaymentAmount(e.target.value)}
                                     className="w-full rounded-md border border-border-default bg-sunken px-3 py-2 text-body-m text-fg-primary focus:border-border-accent focus:outline-none"
-                                    placeholder={usd.format(balance)}
+                                    placeholder={money(balance)}
                                 />
                             </div>
 
@@ -222,7 +224,7 @@ export function InvoiceDetail({
                                     className={primaryButton}
                                     disabled={createPayment.isPending || !paymentAmount || Number(paymentAmount) <= 0 || Number(paymentAmount) > balance}
                                 >
-                                    {createPayment.isPending ? "Recording..." : `Record ${usd.format(Number(paymentAmount) || 0)}`}
+                                    {createPayment.isPending ? "Recording..." : `Record ${money(Number(paymentAmount) || 0)}`}
                                 </button>
                             </div>
                         </div>
@@ -314,20 +316,20 @@ export function InvoiceDetail({
                                                 )}
                                             </td>
                                             <td className="p-4 text-right text-body-m text-fg-secondary">{Number(item.quantity).toLocaleString()}</td>
-                                            <td className="p-4 text-right font-mono text-body-m text-fg-secondary">{usd.format(Number(item.unitPrice))}</td>
-                                            <td className="p-4 text-right font-mono text-num-m text-fg-primary">{usd.format(Number(item.amount))}</td>
+                                            <td className="p-4 text-right font-mono text-body-m text-fg-secondary">{money(Number(item.unitPrice))}</td>
+                                            <td className="p-4 text-right font-mono text-num-m text-fg-primary">{money(Number(item.amount))}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                                 <tfoot>
                                     <tr className="border-t border-border-default">
                                         <td colSpan={3} className="p-4 text-right text-body-m text-fg-secondary">Subtotal</td>
-                                        <td className="p-4 text-right font-mono text-num-m text-fg-primary">{usd.format(Number(invoice.subtotal))}</td>
+                                        <td className="p-4 text-right font-mono text-num-m text-fg-primary">{money(Number(invoice.subtotal))}</td>
                                     </tr>
                                     {Number(invoice.discount) > 0 && (
                                         <tr className="border-t border-border-subtle">
                                             <td colSpan={3} className="p-4 text-right text-body-m text-fg-secondary">Discount</td>
-                                            <td className="p-4 text-right font-mono text-num-m text-fg-secondary">-{usd.format(Number(invoice.discount))}</td>
+                                            <td className="p-4 text-right font-mono text-num-m text-fg-secondary">-{money(Number(invoice.discount))}</td>
                                         </tr>
                                     )}
                                     {Number(invoice.taxRate) > 0 && (
@@ -335,12 +337,12 @@ export function InvoiceDetail({
                                             <td colSpan={3} className="p-4 text-right text-body-m text-fg-secondary">
                                                 Tax ({Number(invoice.taxRate)}%)
                                             </td>
-                                            <td className="p-4 text-right font-mono text-num-m text-fg-secondary">{usd.format(Number(invoice.tax))}</td>
+                                            <td className="p-4 text-right font-mono text-num-m text-fg-secondary">{money(Number(invoice.tax))}</td>
                                         </tr>
                                     )}
                                     <tr className="border-t border-border-default bg-sunken/50">
                                         <td colSpan={3} className="p-4 text-right text-title-card">Total</td>
-                                        <td className="p-4 text-right font-mono text-num-l text-fg-primary">{usd.format(Number(invoice.total))}</td>
+                                        <td className="p-4 text-right font-mono text-num-l text-fg-primary">{money(Number(invoice.total))}</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -363,7 +365,7 @@ export function InvoiceDetail({
                                 {invoice.payments.map((payment) => (
                                     <div key={payment.id} className="flex items-center justify-between p-4 rounded-lg bg-sunken/50">
                                         <div>
-                                            <p className="font-mono text-num-m text-fg-primary">{usd.format(Number(payment.amount))}</p>
+                                            <p className="font-mono text-num-m text-fg-primary">{money(Number(payment.amount))}</p>
                                             <p className="text-body-s text-fg-tertiary">{formatDate(payment.date)}</p>
                                         </div>
                                         <CircleDollarSign className="size-6 text-fg-tertiary" />
@@ -372,13 +374,13 @@ export function InvoiceDetail({
                                 <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
                                     <span className="text-body-m text-fg-secondary">Total paid</span>
                                     <span className="font-mono text-num-l text-fg-primary">
-                                        {usd.format(invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0))}
+                                        {money(invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0))}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-body-m text-fg-secondary">Balance due</span>
                                     <span className={`font-mono text-num-l ${balance > 0 ? "text-fg-primary" : "text-status-paid-fg"}`}>
-                                        {usd.format(balance)}
+                                        {money(balance)}
                                     </span>
                                 </div>
                             </div>
@@ -415,7 +417,7 @@ export function InvoiceDetail({
                                         {invoice.payments.map((payment) => (
                                             <div key={payment.id} className="flex items-center justify-between text-body-m">
                                                 <span className="text-fg-secondary">{formatDate(payment.date)}</span>
-                                                <span className="font-mono text-num-m text-fg-primary">{usd.format(Number(payment.amount))}</span>
+                                                <span className="font-mono text-num-m text-fg-primary">{money(Number(payment.amount))}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -439,9 +441,9 @@ export function InvoiceDetail({
                     <section className={cardClass}>
                         <div className="p-6">
                             <p className="text-body-m text-fg-secondary">Amount</p>
-                            <p className="mt-1 font-mono text-display-page text-fg-primary">{usd.format(Number(invoice.total))}</p>
+                            <p className="mt-1 font-mono text-display-page text-fg-primary">{money(Number(invoice.total))}</p>
                             {balance > 0 && (
-                                <p className="mt-2 text-body-m text-fg-primary">Balance due: <span className="font-mono">{usd.format(balance)}</span></p>
+                                <p className="mt-2 text-body-m text-fg-primary">Balance due: <span className="font-mono">{money(balance)}</span></p>
                             )}
                         </div>
                     </section>

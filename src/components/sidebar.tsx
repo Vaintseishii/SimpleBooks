@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { LayoutGrid, FileText, Users, Wallet, Contact, BookOpenText } from "lucide-react";
+import NextLink from "next/link";
+import { LayoutGrid, FileText, Users, Wallet, Contact, BookOpenText, UserRound } from "lucide-react";
 import { NavLink } from "./navLinks";
 import { SignOutButton } from "./signOutButton";
 
@@ -72,6 +73,14 @@ export function Sidebar({ user }: SidebarProps) {
                     <span className="truncate text-label-m">{user.name}</span>
                     <span className="truncate text-caption text-fg-tertiary">{user.detail}</span>
                 </div>
+                <NextLink
+                    href="/profile"
+                    aria-label="Profile"
+                    title="Profile"
+                    className="rounded-md p-2 text-fg-tertiary transition-colors duration-120 ease-out hover:bg-sunken hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus"
+                >
+                    <UserRound className="size-4" />
+                </NextLink>
                 <SignOutButton />
             </div>
         </aside>

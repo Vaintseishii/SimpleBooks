@@ -99,9 +99,19 @@ export const expenseRouter = createTRPCRouter({
   create: protectedProcedure
     .input(expenseInput)
     .mutation(async ({ ctx, input }) => {
+      // Expenses have no currency picker yet, so they follow the workspace
+      // default (falling back to the schema default when there is no workspace).
+      const workspace = input.currency
+        ? null
+        : await db.workspace.findUnique({
+            where: { userId: ctx.userId },
+            select: { currency: true },
+          });
+
       const expense = await db.expense.create({
         data: {
           ...input,
+          currency: input.currency ?? workspace?.currency,
           userId: ctx.userId,
         },
         include: { vendor: true },

@@ -1,6 +1,6 @@
 import NextLink from "next/link";
 import { ArrowRight } from "lucide-react";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
 import { plural } from "~/lib/receivables";
 
 type BalanceSummaryProps = {
@@ -8,10 +8,11 @@ type BalanceSummaryProps = {
     invoiceCount: number;
     unpaidBills: number; // every UNPAID expense
     billCount: number;
+    currency: string; // workspace default; these totals span records
 };
 
 // Spec: "Outstanding balances: total pending income vs. total unpaid bills"
-export function BalanceSummary({ pendingIncome, invoiceCount, unpaidBills, billCount }: BalanceSummaryProps) {
+export function BalanceSummary({ pendingIncome, invoiceCount, unpaidBills, billCount, currency }: BalanceSummaryProps) {
     const largest = Math.max(pendingIncome, unpaidBills, 1);
     const difference = pendingIncome - unpaidBills;
 
@@ -42,7 +43,7 @@ export function BalanceSummary({ pendingIncome, invoiceCount, unpaidBills, billC
                             <dt className="text-body-m text-fg-primary">
                                 {row.label} <span className="text-caption text-fg-tertiary">· {row.note}</span>
                             </dt>
-                            <dd className="font-mono text-num-m text-fg-primary">{usd.format(row.value)}</dd>
+                            <dd className="font-mono text-num-m text-fg-primary">{formatMoney(row.value, currency)}</dd>
                         </div>
                         <div className="mt-2 h-2 rounded-full bg-sunken" aria-hidden>
                             <div className={`h-2 rounded-full ${row.bar}`} style={{ width: `${(row.value / largest) * 100}%` }} />
@@ -57,7 +58,7 @@ export function BalanceSummary({ pendingIncome, invoiceCount, unpaidBills, billC
                 </p>
                 <p className="font-mono text-num-l text-fg-primary">
                     {difference < 0 ? "−" : ""}
-                    {usd.format(Math.abs(difference))}
+                    {formatMoney(Math.abs(difference), currency)}
                 </p>
             </div>
         </section>

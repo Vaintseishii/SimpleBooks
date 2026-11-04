@@ -7,7 +7,8 @@ import { BalancesTable } from "./balancesTable";
 import { BalanceSummary } from "./balanceSummary";
 import { RecordPaymentForm, type PaymentInput } from "./recordPaymentForm";
 import { primaryButton } from "./buttonStyles";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
+import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
 import { sumAmounts } from "~/lib/expenseSummary";
 import {
     clientCount,
@@ -20,6 +21,7 @@ import type { Invoice } from "~/lib/sampleInvoices";
 import { api } from "~/trpc/react";
 
 export function WhoOwesYouView() {
+    const currency = useWorkspaceCurrency();
     const [today] = useState(() => new Date());
     const [paymentOpen, setPaymentOpen] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
@@ -41,6 +43,7 @@ export function WhoOwesYouView() {
         issueDate: inv.issueDate,
         dueDate: inv.dueDate,
         status: inv.status,
+        currency: inv.currency,
         total: inv.total,
         paidAt: inv.paidAt,
     }));
@@ -59,7 +62,7 @@ export function WhoOwesYouView() {
             await createPayment.mutateAsync({ invoiceId: input.invoiceId, amount: input.amount, date: input.paidAt });
             await utils.invoices.list.invalidate();
             setPaymentOpen(false);
-            if (invoice) setNotice(`${invoice.client.name} paid ${invoice.number} · ${usd.format(input.amount)}. Marked as paid.`);
+            if (invoice) setNotice(`${invoice.client.name} paid ${invoice.number} · ${formatMoney(input.amount, invoice.currency)}. Marked as paid.`);
         } catch {
             setError("Couldn’t record that payment. Please try again.");
         }
@@ -105,12 +108,14 @@ export function WhoOwesYouView() {
                 <StatCard
                     label="Total owed to you"
                     value={sumBalances(balances)}
+                    currency={currency}
                     note={`${plural(clientCount(balances), "client")} · ${plural(balances.length, "outstanding invoice")}`}
                     highlight
                 />
                 <StatCard
                     label="Overdue"
                     value={sumBalances(overdue)}
+                    currency={currency}
                     note={
                         overdue.length > 0
                             ? `${plural(clientCount(overdue), "client")} · oldest invoice is ${plural(oldestOverdue, "day")} late`
@@ -121,6 +126,7 @@ export function WhoOwesYouView() {
                 <StatCard
                     label="Not yet due"
                     value={sumBalances(notYetDue)}
+                    currency={currency}
                     note={
                         notYetDue.length > 0
                             ? `${plural(notYetDue.length, "invoice")} due in the next ${plural(furthestDue, "day")}`
@@ -131,12 +137,13 @@ export function WhoOwesYouView() {
 
             <div className="grid grid-cols-12 items-start gap-6">
                 <div className={`flex flex-col gap-6 ${paymentOpen ? "col-span-8" : "col-span-12"}`}>
-                    <BalancesTable balances={balances} />
+                    <BalancesTable balances={balances} currency={currency} />
                     <BalanceSummary
                         pendingIncome={sumBalances(balances)}
                         invoiceCount={balances.length}
                         unpaidBills={sumAmounts(unpaidBills)}
                         billCount={unpaidBills.length}
+                        currency={currency}
                     />
                 </div>
 

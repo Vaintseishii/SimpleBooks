@@ -1,5 +1,6 @@
-import { Lock } from "lucide-react";
-import { usd } from "~/lib/format";
+import { BookOpenText, Lock } from "lucide-react";
+import { formatMoney } from "~/lib/format";
+import type { CurrencyCode } from "~/lib/currencies";
 import { shortDate } from "~/lib/invoiceStatus";
 import {
     daysBetween,
@@ -11,13 +12,14 @@ import {
     type InvoiceDraft,
     type Totals,
 } from "~/lib/invoiceDraft";
-import type { ClientOption, WorkspaceInfo } from "~/lib/sampleBilling";
+import type { ClientOption } from "~/lib/sampleBilling";
 
 type InvoicePreviewProps = {
     draft: InvoiceDraft;
     totals: Totals;
     client: ClientOption | undefined;
-    workspace: WorkspaceInfo;
+    business: { name: string; address: string | null; email: string | null };
+    currency: CurrencyCode;
 };
 
 const formatQty = (value: string) => {
@@ -25,7 +27,7 @@ const formatQty = (value: string) => {
     return Number.isInteger(n) ? String(n) : n.toFixed(2);
 };
 
-export function InvoicePreview({ draft, totals, client, workspace }: InvoicePreviewProps) {
+export function InvoicePreview({ draft, totals, client, business, currency }: InvoicePreviewProps) {
     const issue = fromInputDate(draft.issueDate);
     const due = fromInputDate(draft.dueDate);
     const terms = issue && due && due >= issue ? daysBetween(issue, due) : null;
@@ -38,14 +40,13 @@ export function InvoicePreview({ draft, totals, client, workspace }: InvoicePrev
                 {/* who it's from */}
                 <div className="flex items-start justify-between gap-6">
                     <div>
-                        <span className="flex size-11 items-center justify-center rounded-md bg-accent text-title-section text-fg-on-accent">
-                            {workspace.name.charAt(0)}.
+                        <span className="flex size-11 items-center justify-center rounded-md bg-accent text-fg-on-accent">
+                            <BookOpenText className="size-6" aria-hidden />
                         </span>
-                        <p className="mt-4 text-title-section text-fg-primary">{workspace.name}</p>
+                        <p className="mt-4 text-title-section text-fg-primary">{business.name}</p>
                         <div className="mt-2 text-caption">
-                            {workspace.tagline && <p>{workspace.tagline}</p>}
-                            {workspace.address && <p>{workspace.address}</p>}
-                            {workspace.email && <p>{workspace.email}</p>}
+                            {business.address && <p className="whitespace-pre-line">{business.address}</p>}
+                            {business.email && <p>{business.email}</p>}
                         </div>
                     </div>
                     <div className="text-right">
@@ -118,8 +119,8 @@ export function InvoicePreview({ draft, totals, client, workspace }: InvoicePrev
 
                 {/* total */}
                 <div className="mt-6 flex items-center justify-between rounded-md bg-accent-soft px-5 py-4">
-                    <span className="text-body-m text-fg-primary">Total due · {workspace.currency}</span>
-                    <span className="font-mono text-num-l text-fg-accent">{usd.format(totals.total)}</span>
+                    <span className="text-body-m text-fg-primary">Total due · {currency}</span>
+                    <span className="font-mono text-num-l text-fg-accent">{formatMoney(totals.total, currency)}</span>
                 </div>
             </div>
 

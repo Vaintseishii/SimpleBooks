@@ -16,6 +16,7 @@ export type Expense = {
     vendor: Vendor;
     description: string;
     category: ExpenseCategory;
+    currency: string;
     amount: number;
     date: Date;
     status: ExpenseStatus;

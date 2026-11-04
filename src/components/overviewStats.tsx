@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { StatCard } from "./statCard";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
+import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
 import { getDisplayStatus } from "~/lib/invoiceStatus";
 import { plural } from "~/lib/receivables";
 import { api } from "~/trpc/react";
@@ -16,6 +17,9 @@ const periodOptions: { value: Period; label: string }[] = [
 ];
 
 export function OverviewStats() {
+    // These totals span every invoice and expense, so they are reported in the
+    // workspace default rather than any one record's currency.
+    const currency = useWorkspaceCurrency();
     const [period, setPeriod] = useState<Period>("thisMonth");
     const { data: pnl } = api.reports.profitAndLoss.useQuery({ period });
     const { data: sent } = api.invoices.list.useQuery({ status: "SENT", take: 100 }); // sent = not paid yet
@@ -68,19 +72,27 @@ export function OverviewStats() {
                 <StatCard
                     label="Money in"
                     value={pnl?.revenue ?? 0}
+                    currency={currency}
                     note={`${plural(pnl?.invoiceCount ?? 0, "invoice")} paid ${when}`}
                     highlight
                 />
                 <StatCard
                     label="Money out"
                     value={pnl?.totalExpenses ?? 0}
+                    currency={currency}
                     note={`${plural(pnl?.expenseCount ?? 0, "paid expense")} ${when}`}
                 />
-                <StatCard label="Net income" value={pnl?.netProfit ?? 0} note="Money in, less business expenses" />
+                <StatCard
+                    label="Net income"
+                    value={pnl?.netProfit ?? 0}
+                    currency={currency}
+                    note="Money in, less business expenses"
+                />
                 <StatCard
                     label="Outstanding"
                     value={outstanding}
-                    note={`${usd.format(overdueTotal)} is overdue · ${plural(overdue.length, "invoice")}`}
+                    currency={currency}
+                    note={`${formatMoney(overdueTotal, currency)} is overdue · ${plural(overdue.length, "invoice")}`}
                 />
             </div>
         </div>

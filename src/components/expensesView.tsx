@@ -7,7 +7,8 @@ import { ExpensesTable } from "./expensesTable";
 import { ExpenseForm } from "./expenseForm";
 import { CategoryBreakdown } from "./categoryBreakdown";
 import { primaryButton } from "./buttonStyles";
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
+import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
 import type { ExpenseInput } from "~/lib/expenseDraft";
 import {
     categoryBreakdown,
@@ -26,6 +27,7 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
 const percent = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 });
 
 export function ExpensesView() {
+    const currency = useWorkspaceCurrency();
     const [today] = useState(() => new Date());
     const [period, setPeriod] = useState<Period>(monthKey(today));
     const [formOpen, setFormOpen] = useState(false);
@@ -46,6 +48,7 @@ export function ExpensesView() {
         vendor: { id: e.vendorId, name: e.vendor?.name ?? "Unknown vendor" },
         description: e.description,
         category: e.category,
+        currency: e.currency,
         amount: e.amount,
         date: e.date,
         status: e.status === "UNPAID" ? "UNPAID" : "PAID",
@@ -83,7 +86,7 @@ export function ExpensesView() {
             await Promise.all([utils.expenses.list.invalidate(), utils.vendors.list.invalidate()]);
             setPeriod(monthKey(input.date)); // jump to the month you just recorded into
             setFormOpen(false);
-            setSaved(`${expense.vendor.name} · ${usd.format(input.amount)} saved${input.status === "UNPAID" ? " as an unpaid bill" : ""}.`);
+            setSaved(`${expense.vendor.name} · ${formatMoney(input.amount, currency)} saved${input.status === "UNPAID" ? " as an unpaid bill" : ""}.`);
         } catch {
             setError("Couldn’t save that expense. Please try again.");
         }
@@ -135,16 +138,17 @@ export function ExpensesView() {
             )}
 
             <div className="grid grid-cols-3 gap-6">
-                <StatCard label={spentLabel} value={spent} note={spentNote} highlight />
+                <StatCard label={spentLabel} value={spent} currency={currency} note={spentNote} highlight />
                 <StatCard
                     label="Unpaid bills"
                     value={sumAmounts(unpaid)}
+                    currency={currency}
                     note={unpaid.length > 0 ? `${plural(unpaid.length, "bill")} still to pay` : "All caught up. Nothing to pay."}
                 />
                 <StatCard
                     label="Largest category"
                     value={largest ? categoryLabels[largest.category] : "None yet"}
-                    note={largest ? `${usd.format(largest.total)} · ${percent.format(largest.share)} of ${spendName} spend` : "Nothing spent in this period"}
+                    note={largest ? `${formatMoney(largest.total, currency)} · ${percent.format(largest.share)} of ${spendName} spend` : "Nothing spent in this period"}
                 />
             </div>
 
@@ -158,7 +162,7 @@ export function ExpensesView() {
                         onMarkPaid={(id) => void markPaid(id)}
                         today={today}
                     />
-                    <CategoryBreakdown expenses={inRange} periodLabel={rangeName} />
+                    <CategoryBreakdown expenses={inRange} periodLabel={rangeName} currency={currency} />
                 </div>
 
                 {formOpen && (

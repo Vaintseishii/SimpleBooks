@@ -1,13 +1,17 @@
-import { usd } from "~/lib/format";
+import { formatMoney } from "~/lib/format";
 import { categoryBreakdown, categoryColors, categoryLabels } from "~/lib/expenseSummary";
 import type { Expense } from "~/lib/sampleExpenses";
 
 const percent = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 });
 
-type CategoryBreakdownProps = { expenses: Expense[]; periodLabel: string };
+type CategoryBreakdownProps = {
+    expenses: Expense[];
+    periodLabel: string;
+    currency: string; // workspace default; these totals span records
+};
 
 // Category split as one stacked bar (the design system's answer to a pie chart)
-export function CategoryBreakdown({ expenses, periodLabel }: CategoryBreakdownProps) {
+export function CategoryBreakdown({ expenses, periodLabel, currency }: CategoryBreakdownProps) {
     const totals = categoryBreakdown(expenses);
 
     return (
@@ -31,7 +35,7 @@ export function CategoryBreakdown({ expenses, periodLabel }: CategoryBreakdownPr
                         {totals.map((t) => (
                             <div
                                 key={t.category}
-                                title={`${categoryLabels[t.category]} · ${usd.format(t.total)}`}
+                                title={`${categoryLabels[t.category]} · ${formatMoney(t.total, currency)}`}
                                 className={`${categoryColors[t.category]} h-full`}
                                 style={{ width: `${t.share * 100}%` }}
                             />
@@ -45,7 +49,7 @@ export function CategoryBreakdown({ expenses, periodLabel }: CategoryBreakdownPr
                                     <span className={`size-2.5 rounded-xs ${categoryColors[t.category]}`} />
                                     {categoryLabels[t.category]}
                                 </span>
-                                <p className="mt-1 font-mono text-num-l">{usd.format(t.total)}</p>
+                                <p className="mt-1 font-mono text-num-l">{formatMoney(t.total, currency)}</p>
                                 <p className="font-mono text-num-s text-fg-tertiary">{percent.format(t.share)}</p>
                             </li>
                         ))}

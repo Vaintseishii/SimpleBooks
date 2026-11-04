@@ -15,7 +15,8 @@ import { api, type RouterOutputs } from "~/trpc/react";
 type ClientRow = RouterOutputs["clients"]["list"][number];
 
 type FormState = {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   address: string;
@@ -23,12 +24,20 @@ type FormState = {
 };
 
 const EMPTY_FORM: FormState = {
-  name: "",
+  firstName: "",
+  lastName: "",
   email: "",
   phone: "",
   address: "",
   notes: "",
 };
+
+// The client stores one display name. First and last name are split on the
+// first space when opening a client for edit, and joined again on save.
+function splitName(name: string) {
+  const [firstName = "", ...rest] = name.trim().split(/\s+/);
+  return { firstName, lastName: rest.join(" ") };
+}
 
 type FieldErrors = Record<string, string[] | undefined>;
 
@@ -63,6 +72,7 @@ export function ClientsView() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const trimmedSearch = search.trim();
 
@@ -75,6 +85,7 @@ export function ClientsView() {
   const closeForm = () => {
     setForm(EMPTY_FORM);
     setEditingId(null);
+    setNameError(null);
     setOpen(false);
   };
 
@@ -105,12 +116,13 @@ export function ClientsView() {
   const startEdit = (client: ClientRow) => {
     setEditingId(client.id);
     setForm({
-      name: client.name,
+      ...splitName(client.name),
       email: client.email ?? "",
       phone: client.phone ?? "",
       address: client.address ?? "",
       notes: client.notes ?? "",
     });
+    setNameError(null);
     setOpen(true);
     createClient.reset();
     updateClient.reset();
@@ -119,10 +131,27 @@ export function ClientsView() {
   const submit = (event: FormEvent) => {
     event.preventDefault();
 
+    const firstName = form.firstName.trim();
+    const lastName = form.lastName.trim();
+
+    if (!firstName || !lastName) {
+      setNameError("Enter the client's first and last name.");
+      return;
+    }
+
+    setNameError(null);
+    const input = {
+      name: `${firstName} ${lastName}`,
+      email: form.email,
+      phone: form.phone,
+      address: form.address,
+      notes: form.notes,
+    };
+
     if (editingId) {
-      updateClient.mutate({ id: editingId, ...form });
+      updateClient.mutate({ id: editingId, ...input });
     } else {
-      createClient.mutate(form);
+      createClient.mutate(input);
     }
   };
 
@@ -131,6 +160,7 @@ export function ClientsView() {
     updateClient.reset();
     setForm(EMPTY_FORM);
     setEditingId(null);
+    setNameError(null);
     setOpen(true);
   };
 
@@ -262,23 +292,34 @@ export function ClientsView() {
               </button>
             </div>
 
-            {error && (
+            {(error ?? nameError) && (
               <p
                 role="alert"
                 className="rounded-lg bg-status-overdue p-4 text-body-m text-status-overdue-fg"
               >
-                {Object.keys(fieldErrors).length > 0
-                  ? "Please fix the highlighted fields."
-                  : error.message}
+                {nameError ??
+                  (Object.keys(fieldErrors).length > 0
+                    ? "Please fix the highlighted fields."
+                    : error?.message)}
               </p>
             )}
 
-            <Field label="Name" error={fieldErrors.name?.[0]}>
+            <Field label="First name" error={fieldErrors.name?.[0]}>
               <input
                 className={fieldClass(!!fieldErrors.name)}
-                value={form.name}
+                value={form.firstName}
                 onChange={(event) =>
-                  setForm({ ...form, name: event.target.value })
+                  setForm({ ...form, firstName: event.target.value })
+                }
+              />
+            </Field>
+
+            <Field label="Last name">
+              <input
+                className={fieldClass()}
+                value={form.lastName}
+                onChange={(event) =>
+                  setForm({ ...form, lastName: event.target.value })
                 }
               />
             </Field>

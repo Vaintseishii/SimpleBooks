@@ -7,12 +7,15 @@ import { api } from "~/trpc/react";
 import { StatCard } from "~/components/statCard";
 import { InvoicesTable } from "~/components/invoicesTable";
 import { primaryButton } from "~/components/buttonStyles";
+import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
 import { getDisplayStatus, sameMonth } from "~/lib/invoiceStatus";
 
 const sum = (values: number[]) => values.reduce((total, v) => total + v, 0);
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
 function InvoicesPageContent() {
+    // Stat cards total every invoice, so they follow the workspace default.
+    const currency = useWorkspaceCurrency();
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<"ALL" | "DRAFT" | "SENT" | "PAID">("ALL");
     const [dateFilter, setDateFilter] = useState<"all" | "thisMonth" | "lastMonth">("all");
@@ -61,10 +64,10 @@ function InvoicesPageContent() {
                     </div>
                 </div>
                 <div className="grid grid-cols-4 gap-6">
-                    <StatCard label="Outstanding" value={0} note="Loading..." highlight />
-                    <StatCard label="Overdue" value={0} note="Loading..." />
-                    <StatCard label="Paid this month" value={0} note="Loading..." />
-                    <StatCard label="Drafts" value={0} note="Loading..." />
+                    <StatCard label="Outstanding" value={0} currency={currency} note="Loading..." highlight />
+                    <StatCard label="Overdue" value={0} currency={currency} note="Loading..." />
+                    <StatCard label="Paid this month" value={0} currency={currency} note="Loading..." />
+                    <StatCard label="Drafts" value={0} currency={currency} note="Loading..." />
                 </div>
                 <div className="overflow-hidden rounded-lg border border-border-default bg-surface shadow-card">
                     <div className="p-6 text-center text-body-m text-fg-secondary">Loading invoices...</div>
@@ -119,23 +122,27 @@ function InvoicesPageContent() {
                 <StatCard
                     label="Outstanding"
                     value={sum(sent.map((inv) => inv.total))}
+                    currency={currency}
                     note={`${plural(sent.length, "sent invoice")} awaiting payment`}
                     highlight
                 />
                 <StatCard
                     label="Overdue"
                     value={sum(overdue.map((inv) => inv.total))}
+                    currency={currency}
                     note={`${plural(overdue.length, "invoice")} ${overdue.length === 1 ? "needs" : "need"} a follow-up`}
                     overdue={overdue.length > 0}
                 />
                 <StatCard
                     label="Paid this month"
                     value={sum(paidThisMonth.map((inv) => inv.total))}
+                    currency={currency}
                     note={`${plural(paidThisMonth.length, "payment")} received in ${monthName}`}
                 />
                 <StatCard
                     label="Drafts"
                     value={sum(drafts.map((inv) => inv.total))}
+                    currency={currency}
                     note={`${plural(drafts.length, "invoice")} ready when you are`}
                 />
             </div>

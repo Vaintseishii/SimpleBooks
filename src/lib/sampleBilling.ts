@@ -11,7 +11,6 @@ export type ClientOption = {
 
 export type WorkspaceInfo = {
     name: string;
-    tagline: string | null; // not in the Workspace model yet, shown on the invoice
     address: string | null;
     email: string | null;
     currency: string;
@@ -19,7 +18,6 @@ export type WorkspaceInfo = {
 
 export const sampleWorkspace: WorkspaceInfo = {
     name: "Alder Studio",
-    tagline: "Design for thoughtful businesses.",
     address: "Portland, Oregon",
     email: "maya@alderstudio.design",
     currency: "USD",
