@@ -38,7 +38,7 @@ export function InvoicePreview({ draft, totals, client, workspace }: InvoicePrev
                 {/* who it's from */}
                 <div className="flex items-start justify-between gap-6">
                     <div>
-                        <span className="flex size-11 items-center justify-center rounded-md bg-accent text-title-section text-fg-on-accent">
+                        <span className="flex size-11 items-center justify-center rounded-md bg-card-gradient text-title-section text-fg-on-gradient">
                             {workspace.name.charAt(0)}.
                         </span>
                         <p className="mt-4 text-title-section text-fg-primary">{workspace.name}</p>
@@ -117,9 +117,9 @@ export function InvoicePreview({ draft, totals, client, workspace }: InvoicePrev
                 </table>
 
                 {/* total */}
-                <div className="mt-6 flex items-center justify-between rounded-md bg-accent-soft px-5 py-4">
-                    <span className="text-body-m text-fg-primary">Total due · {workspace.currency}</span>
-                    <span className="font-mono text-num-l text-fg-accent">{usd.format(totals.total)}</span>
+                <div className="mt-6 flex items-center justify-between rounded-md bg-card-gradient px-5 py-4">
+                    <span className="text-body-m text-fg-on-gradient">Total due · {workspace.currency}</span>
+                    <span className="font-mono text-num-l text-fg-on-gradient">{usd.format(totals.total)}</span>
                 </div>
             </div>
 
