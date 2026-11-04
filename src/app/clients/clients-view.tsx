@@ -154,7 +154,7 @@ export function ClientsView() {
 
       <div className="grid grid-cols-12 items-start gap-6">
         <div
-          className={`overflow-hidden rounded-lg border border-border-default bg-surface shadow-card ${open ? "col-span-8" : "col-span-12"}`}
+          className={`overflow-hidden rounded-lg border border-border-default bg-surface shadow-card-elevated hover:shadow-card-hover ${open ? "col-span-8" : "col-span-12"}`}
         >
           <div className="p-6">
             <label className="relative block max-w-xs">
@@ -246,7 +246,7 @@ export function ClientsView() {
           <form
             noValidate
             onSubmit={submit}
-            className="sticky top-8 col-span-4 flex flex-col gap-5 rounded-lg border border-border-default bg-surface p-6 shadow-card"
+            className="sticky top-8 col-span-4 flex flex-col gap-5 rounded-lg border border-border-default bg-surface p-6 shadow-card-elevated hover:shadow-card-hover transition-shadow duration-200 ease-out"
           >
             <div className="flex items-start justify-between gap-4">
               <h2 className="text-title-section">
