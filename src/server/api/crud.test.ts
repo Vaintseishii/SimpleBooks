@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 // ──────────────────────────────────────────────────────────────────────
 // normalizeToNull — the pure function from crud.ts
@@ -85,7 +85,6 @@ const createInput = z.object({
     .or(z.literal("")),
 });
 
-const updateInput = createInput.partial().extend({ id: z.string().min(1, "An id is required") });
 
 describe("crud input schemas", () => {
   it("crudListInput defaults take=50 and skip=0", () => {
@@ -125,13 +124,6 @@ describe("crud input schemas", () => {
 // ──────────────────────────────────────────────────────────────────────
 // CRUD logic patterns — delegate contracts
 // ──────────────────────────────────────────────────────────────────────
-
-type Row = {
-  id: string;
-  userId: string;
-  name: string;
-  email: string | null;
-};
 
 // Test helpers (no tRPC import needed)
 function makeWhere(userId: string): Record<string, unknown> {
@@ -190,7 +182,6 @@ describe("ownership isolation", () => {
   it("different userId rows are invisible to all five procedures", () => {
     const user1 = "user-1";
     const user2 = "user-2";
-    const rowId = "r1";
 
     // All five procedures share the same scoping invariant:
     // userId from context, never from the request body.
