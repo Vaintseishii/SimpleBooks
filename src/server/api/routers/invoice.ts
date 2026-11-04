@@ -90,18 +90,24 @@ export const invoiceRouter = createTRPCRouter({
           include: {
             client: { select: { name: true } },
             items: { select: { amount: true } },
+            payments: { select: { amount: true } },
           },
         }),
         db.invoice.count({ where }),
       ]);
 
       // Transform to match the expected Invoice type with client.name and computed total
-      const transformed = invoices.map((inv) => ({
-        ...inv,
-        client: { name: inv.client.name },
-        total: Number(inv.total),
-        items: inv.items,
-      }));
+      const transformed = invoices.map((inv) => {
+        const paid = inv.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+        return {
+          ...inv,
+          client: { name: inv.client.name },
+          total: Number(inv.total),
+          // What is still owed after any partial payments
+          balance: Number(inv.total) - paid,
+          items: inv.items,
+        };
+      });
 
       return { invoices: transformed, total };
     }),
@@ -129,6 +135,14 @@ export const invoiceRouter = createTRPCRouter({
     .input(invoiceCreateInput)
     .mutation(async ({ ctx, input }) => {
       const { items, ...invoiceData } = input;
+
+      // The client must be one of this user's clients
+      const client = await db.client.findFirst({
+        where: { id: invoiceData.clientId, userId: ctx.userId },
+      });
+      if (!client) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+      }
 
       // Check for duplicate number
       const existing = await db.invoice.findFirst({
@@ -186,6 +200,16 @@ export const invoiceRouter = createTRPCRouter({
 
       if (!existing) {
         throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      // A new client must be one of this user's clients
+      if (invoiceData.clientId && invoiceData.clientId !== existing.clientId) {
+        const client = await db.client.findFirst({
+          where: { id: invoiceData.clientId, userId: ctx.userId },
+        });
+        if (!client) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        }
       }
 
       // Check for duplicate number (excluding current invoice)

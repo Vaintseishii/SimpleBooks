@@ -99,6 +99,14 @@ export const expenseRouter = createTRPCRouter({
   create: protectedProcedure
     .input(expenseInput)
     .mutation(async ({ ctx, input }) => {
+      // The vendor must be one of this user's vendors
+      const vendor = await db.vendor.findFirst({
+        where: { id: input.vendorId, userId: ctx.userId },
+      });
+      if (!vendor) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Vendor not found." });
+      }
+
       // Expenses have no currency picker yet, so they follow the workspace
       // default (falling back to the schema default when there is no workspace).
       const workspace = input.currency
@@ -131,6 +139,16 @@ export const expenseRouter = createTRPCRouter({
 
       if (!existing) {
         throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      // A new vendor must be one of this user's vendors
+      if (expenseData.vendorId && expenseData.vendorId !== existing.vendorId) {
+        const vendor = await db.vendor.findFirst({
+          where: { id: expenseData.vendorId, userId: ctx.userId },
+        });
+        if (!vendor) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Vendor not found." });
+        }
       }
 
       const expense = await db.expense.update({

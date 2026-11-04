@@ -102,6 +102,7 @@ export function InvoiceForm({
     async function save(status: InvoiceStatus) {
         setSaveError(null);
         const found = validateDraft(draft, existingNumbers, status);
+        setErrors(found);
         if (Object.values(found).some(Boolean)) {
             setSaved(null);
             return;
@@ -135,7 +136,7 @@ export function InvoiceForm({
             <div className="flex items-end justify-between gap-6">
                 <div>
                     <p className="text-overline uppercase text-fg-tertiary">Good work deserves a good invoice</p>
-                    <h1 className="mt-2 text-display-page">New invoice</h1>
+                    <h1 className="mt-2 text-display-page">{mode === "edit" ? "Edit invoice" : "New invoice"}</h1>
                     <p className="mt-2 max-w-[65ch] text-body-l text-fg-secondary">
                         Add the details, make it yours, and send when you&apos;re ready.
                     </p>

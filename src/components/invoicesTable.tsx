@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
-import { ArrowDownWideNarrow, CalendarDays, ChevronDown, Ellipsis, Search } from "lucide-react";
+import { ArrowDownWideNarrow, CalendarDays, ChevronDown, Ellipsis, Eye, Pencil, Search, Trash2 } from "lucide-react";
+import { api } from "~/trpc/react";
 import { StatusPill, type DisplayStatus } from "./statusPill";
 import { formatMoney } from "~/lib/format";
 import { getDisplayStatus, sameMonth, shortDate } from "~/lib/invoiceStatus";
@@ -30,16 +31,51 @@ function inTab(tab: Tab, status: DisplayStatus) {
 const selectClass =
     "h-10 appearance-none rounded-md border border-border-default bg-surface pr-3 pl-10 text-label-m text-fg-primary transition-colors duration-120 ease-out hover:bg-sunken focus-visible:outline-2 focus-visible:outline-border-focus";
 const selectIcon = "pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-secondary";
+const menuItem =
+    "flex w-full items-center gap-2 px-3 py-2 text-left text-body-m text-fg-secondary transition-colors duration-120 ease-out hover:bg-sunken hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus";
 
 type InvoicesTableProps = { invoices: Invoice[]; today: Date };
 
 export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
+    const utils = api.useUtils();
     const [tab, setTab] = useState<Tab>("all");
     const [query, setQuery] = useState("");
     const [dateFilter, setDateFilter] = useState<DateFilter>("all");
     const [client, setClient] = useState("all");
     const [sort, setSort] = useState<Sort>("newest");
     const [selected, setSelected] = useState<Set<string>>(new Set());
+    // Fixed coordinates keep the menu out of the card's overflow clipping.
+    const [menu, setMenu] = useState<{ id: string; top: number; right: number } | null>(null);
+
+    const deleteInvoice = api.invoices.delete.useMutation({
+        onSuccess: async (_data, variables) => {
+            setSelected((prev) => {
+                const next = new Set(prev);
+                next.delete(variables.id);
+                return next;
+            });
+            await utils.invoices.list.invalidate();
+        },
+    });
+
+    // Escape, scroll, or resize closes the row menu.
+    useEffect(() => {
+        if (!menu) return;
+        function close() {
+            setMenu(null);
+        }
+        function onKeyDown(event: KeyboardEvent) {
+            if (event.key === "Escape") close();
+        }
+        window.addEventListener("keydown", onKeyDown);
+        window.addEventListener("scroll", close, true);
+        window.addEventListener("resize", close);
+        return () => {
+            window.removeEventListener("keydown", onKeyDown);
+            window.removeEventListener("scroll", close, true);
+            window.removeEventListener("resize", close);
+        };
+    }, [menu]);
 
     const rows = useMemo(
         () => invoices.map((inv) => ({ ...inv, displayStatus: getDisplayStatus(inv, today) })),
@@ -84,6 +120,13 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
 
     return (
         <div className="rounded-xl border border-border-default bg-surface shadow-card-elevated overflow-hidden">
+            {menu && (
+                <div
+                    aria-hidden="true"
+                    className="fixed inset-0 z-40 cursor-default"
+                    onClick={() => setMenu(null)}
+                />
+            )}
             {/* tabs */}
             <div role="tablist" className="flex gap-8 border-b border-border-subtle px-6">
                 {tabs.map((t) => {
@@ -202,10 +245,57 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                                     <button
                                         type="button"
                                         aria-label={`More actions for ${inv.number}`}
+                                        aria-haspopup="menu"
+                                        aria-expanded={menu?.id === inv.id}
+                                        onClick={(event) => {
+                                            if (menu?.id === inv.id) {
+                                                setMenu(null);
+                                                return;
+                                            }
+                                            const rect = event.currentTarget.getBoundingClientRect();
+                                            // Open upward when the row sits too close to the bottom edge.
+                                            const menuHeight = 128;
+                                            const openUp = window.innerHeight - rect.bottom < menuHeight + 8;
+                                            setMenu({
+                                                id: inv.id,
+                                                top: openUp ? Math.max(8, rect.top - menuHeight - 4) : rect.bottom + 4,
+                                                right: window.innerWidth - rect.right,
+                                            });
+                                        }}
                                         className="rounded-sm p-1 text-fg-tertiary transition-colors duration-120 ease-out hover:bg-sunken hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus"
                                     >
                                         <Ellipsis className="size-4" />
                                     </button>
+                                    {menu?.id === inv.id && (
+                                        <div
+                                            role="menu"
+                                            aria-label={`Actions for ${inv.number}`}
+                                            style={{ top: menu.top, right: menu.right }}
+                                            className="fixed z-50 w-44 overflow-hidden rounded-md border border-border-default bg-surface py-1 shadow-card-elevated"
+                                        >
+                                            <NextLink href={`/invoices/${inv.id}`} role="menuitem" className={menuItem} onClick={() => setMenu(null)}>
+                                                <Eye className="size-4" /> View invoice
+                                            </NextLink>
+                                            <NextLink href={`/invoices/${inv.id}/edit`} role="menuitem" className={menuItem} onClick={() => setMenu(null)}>
+                                                <Pencil className="size-4" /> Edit invoice
+                                            </NextLink>
+                                            <button
+                                                type="button"
+                                                role="menuitem"
+                                                disabled={deleteInvoice.isPending}
+                                                onClick={() => {
+                                                    setMenu(null);
+                                                    deleteInvoice.reset();
+                                                    if (window.confirm(`Delete ${inv.number}? This cannot be undone.`)) {
+                                                        deleteInvoice.mutate({ id: inv.id });
+                                                    }
+                                                }}
+                                                className={`${menuItem} text-status-overdue-fg hover:bg-status-overdue disabled:opacity-60`}
+                                            >
+                                                <Trash2 className="size-4" /> Delete invoice
+                                            </button>
+                                        </div>
+                                    )}
                                 </td>
                             </tr>
                         );
@@ -228,6 +318,12 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                 </span>
                 {selected.size > 0 && <span className="text-fg-primary font-medium">{selected.size} selected</span>}
             </div>
+
+            {deleteInvoice.error && (
+                <p role="alert" className="border-t border-border-subtle bg-status-overdue px-6 py-4 text-body-m text-status-overdue-fg">
+                    {deleteInvoice.error.message}
+                </p>
+            )}
         </div>
     );
 }

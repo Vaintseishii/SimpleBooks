@@ -18,6 +18,12 @@ export function InvoiceDetailClient({ params }: InvoiceDetailClientProps) {
         void params.then((p) => setInvoiceId(p.id));
     }, [params]);
 
+    // Hooks must run on every render, so call the query before any early return.
+    const { data: invoice, isPending, error } = api.invoices.byId.useQuery(
+        { id: invoiceId },
+        { enabled: !!invoiceId }
+    );
+
     if (!invoiceId) {
         return (
             <div className="flex flex-col gap-8 p-6">
@@ -27,11 +33,6 @@ export function InvoiceDetailClient({ params }: InvoiceDetailClientProps) {
             </div>
         );
     }
-
-    const { data: invoice, isPending, error } = api.invoices.byId.useQuery(
-        { id: invoiceId },
-        { enabled: !!invoiceId }
-    );
 
     if (isPending) {
         return (
