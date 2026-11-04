@@ -22,7 +22,7 @@ export function Sidebar({ user }: SidebarProps) {
         <aside className="flex sticky top-0 h-dvh w-58 shrink-0 flex-col border-r border-border-subtle bg-canvas px-4 py-6">
             {/* logo */}
             <div className="mb-8 flex items-center gap-3 px-2">
-                <div className="size-8 shrink-0 rounded-md bg-card-gradient p-1.5">
+                <div className="relative size-8 shrink-0 rounded-md bg-card-gradient p-1.5">
                     <Image
                         src="/logo-1024.png"
                         alt="SimpleBooks"
