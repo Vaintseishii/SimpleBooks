@@ -6,7 +6,9 @@ import type { Invoice } from "./sampleInvoices";
 export function getDisplayStatus(invoice: Pick<Invoice, "status" | "dueDate">, today: Date): DisplayStatus {
     if (invoice.status === "PAID") return "paid";
     if (invoice.status === "DRAFT") return "draft";
-    return invoice.dueDate < today ? "overdue" : "sent";
+    // Compare with the start of today, so an invoice due today isn't overdue yet.
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return invoice.dueDate < startOfToday ? "overdue" : "sent";
 }
 
 export const sameMonth = (a: Date, b: Date) =>
