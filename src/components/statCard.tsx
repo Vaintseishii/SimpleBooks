@@ -17,16 +17,14 @@ export function StatCard({ label, value, note, highlight = false, overdue = fals
     const shadowClass = "shadow-card-elevated hover:shadow-card-hover";
     
     let cardClass = baseCard;
-    if (gradient) {
+    if (gradient || highlight) {
         cardClass += " card-gradient text-on-gradient border-transparent";
-    } else if (highlight) {
-        cardClass += " border-accent bg-accent text-fg-on-accent";
     } else {
         cardClass += " border-border-default bg-surface";
     }
     cardClass += ` ${shadowClass}`;
 
-    const muted = gradient ? "text-on-gradient/70" : (highlight ? "text-fg-on-accent/80" : "text-fg-secondary");
+    const muted = (gradient || highlight) ? "text-on-gradient/70" : "text-fg-secondary";
     const noteColor = overdue ? "text-status-overdue-fg" : muted;
 
     return (

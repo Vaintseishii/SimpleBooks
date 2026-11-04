@@ -22,7 +22,7 @@ type StatusPillProps = {
 };
 
 export function StatusPill({ status, solid = false }: StatusPillProps) {
-    const color = solid && status === "paid" ? "bg-status-paid-solid text-fg-on-accent" : styles[status];
+    const color = solid && status === "paid" ? "bg-status-paid-solid text-fg-on-gradient" : styles[status];
 
     return (
         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-label-s uppercase ${color}`}>
