@@ -34,7 +34,7 @@ export function InvoicePreview({ draft, totals, client, workspace }: InvoicePrev
 
     return (
         <div>
-            <div className="rounded-lg border border-border-default bg-surface p-8 text-fg-secondary shadow-card">
+            <div className="rounded-lg border border-border-default bg-surface p-8 text-fg-secondary shadow-card-elevated hover:shadow-card-hover transition-shadow duration-200 ease-out">
                 {/* who it's from */}
                 <div className="flex items-start justify-between gap-6">
                     <div>
