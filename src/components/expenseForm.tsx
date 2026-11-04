@@ -14,6 +14,7 @@ import {
     type ExpenseInput,
 } from "~/lib/expenseDraft";
 import { categoryLabels, categoryOrder } from "~/lib/expenseSummary";
+import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
 import type { ExpenseCategory, ExpenseStatus, Vendor } from "~/lib/sampleExpenses";
 
 type ExpenseFormProps = {
@@ -31,6 +32,7 @@ const statusOptions: { value: ExpenseStatus; label: string }[] = [
 ];
 
 export function ExpenseForm({ vendors, today, onSave, onClose }: ExpenseFormProps) {
+    const currency = useWorkspaceCurrency();
     const [draft, setDraft] = useState<ExpenseDraft>(() => createExpenseDraft(today));
     const [errors, setErrors] = useState<ExpenseDraftErrors>({});
 
@@ -119,7 +121,7 @@ export function ExpenseForm({ vendors, today, onSave, onClose }: ExpenseFormProp
 
             <div className="mt-6 grid grid-cols-2 gap-4">
                 <div>
-                    <label htmlFor="amount" className={labelClass}>Amount · USD</label>
+                    <label htmlFor="amount" className={labelClass}>Amount · {currency}</label>
                     <input
                         id="amount"
                         inputMode="decimal"
