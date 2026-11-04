@@ -119,20 +119,20 @@
     --text-num-hero: 3rem;
     --text-num-hero--line-height: 3.375rem;
     --text-num-hero--letter-spacing: -0.02em;
-    --text-num-hero--font-weight: 700;
+    --text-num-hero--font-weight: 800;
 
     --text-num-l: 1.75rem;
     --text-num-l--line-height: 2.125rem;
     --text-num-l--letter-spacing: -0.01em;
-    --text-num-l--font-weight: 700;
+    --text-num-l--font-weight: 800;
 
     --text-num-m: 1.125rem;
     --text-num-m--line-height: 1.5rem;
-    --text-num-m--font-weight: 600;
+    --text-num-m--font-weight: 700;
 
     --text-num-s: 0.9375rem;
     --text-num-s--line-height: 1.25rem;
-    --text-num-s--font-weight: 600;
+    --text-num-s--font-weight: 700;
 
     /* ---------- Radius (no others exist) ---------- */
     --radius-xs: 4px;   /* checkbox, swatch, bar tops */
