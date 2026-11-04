@@ -194,6 +194,7 @@ export function ExpensesView() {
                             onPeriodChange={setPeriod}
                             onMarkPaid={(id) => void markPaid(id)}
                             onDelete={(id) => void removeExpense(id)}
+                            deletingId={deleteExpense.isPending ? deleteExpense.variables?.id : null}
                             today={today}
                         />
                     )}

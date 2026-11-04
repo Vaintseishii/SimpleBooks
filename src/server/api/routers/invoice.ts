@@ -142,9 +142,20 @@ export const invoiceRouter = createTRPCRouter({
         });
       }
 
+      // The client sends totals, but the items are the source of truth.
+      const totals = calculateTotals(
+        items,
+        invoiceData.discount ?? 0,
+        invoiceData.taxRate ?? 0,
+      );
+
       const invoice = await db.invoice.create({
         data: {
           ...invoiceData,
+          subtotal: totals.subtotal,
+          discount: totals.discount,
+          tax: totals.tax,
+          total: totals.total,
           userId: ctx.userId,
           sentAt: invoiceData.status === "SENT" ? new Date() : null,
           items: {
@@ -218,9 +229,10 @@ export const invoiceRouter = createTRPCRouter({
         updateData.sentAt = new Date();
       }
 
-      // Auto-update status to PAID if fully paid
+      // Auto-update status to PAID if fully paid. Use the recomputed total when
+      // items changed, not the client-sent one.
       const totalPaid = existing.payments?.reduce((sum, p) => sum + Number(p.amount), 0) ?? 0;
-      const newTotal = invoiceData.total ?? Number(existing.total);
+      const newTotal = Number(updateData.total ?? invoiceData.total ?? existing.total);
       if (totalPaid >= newTotal && existing.status !== "PAID") {
         updateData.status = "PAID";
         updateData.paidAt = new Date();
@@ -299,18 +311,16 @@ export const invoiceRouter = createTRPCRouter({
       return payment;
     }),
 
-  // Get next invoice number
+  // Get next invoice number. The numeric part is compared as a number: ordering
+  // by `number` as text would rank "INV-9999" above "INV-10000".
   nextNumber: protectedProcedure.query(async ({ ctx }) => {
-    const lastInvoice = await db.invoice.findFirst({
-      where: { userId: ctx.userId },
-      orderBy: { number: "desc" },
-      select: { number: true },
-    });
+    const [row] = await db.$queryRaw<{ max: number | null }[]>`
+      SELECT MAX(CAST(NULLIF(REGEXP_REPLACE("number", '\\D', '', 'g'), '') AS INTEGER)) AS max
+      FROM "Invoice"
+      WHERE "userId" = ${ctx.userId}
+    `;
 
-    const numbers = lastInvoice
-      ? [Number(lastInvoice.number.replace(/\D/g, "")) || 0]
-      : [0];
-
-    return `INV-${Math.max(1000, ...numbers) + 1}`;
+    const highest = Number(row?.max ?? 0);
+    return `INV-${Math.max(1000, highest) + 1}`;
   }),
 });

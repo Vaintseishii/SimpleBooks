@@ -22,10 +22,12 @@ type ExpensesTableProps = {
     onPeriodChange: (period: Period) => void;
     onMarkPaid: (id: string) => void;
     onDelete: (id: string) => void;
+    /** id of the expense currently being deleted, so its button can be disabled */
+    deletingId?: string | null;
     today: Date;
 };
 
-export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMarkPaid, onDelete, today }: ExpensesTableProps) {
+export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMarkPaid, onDelete, deletingId, today }: ExpensesTableProps) {
     // Rows show their own currency; the sum is a workspace-level figure.
     const currency = useWorkspaceCurrency();
     const [query, setQuery] = useState("");
@@ -132,11 +134,12 @@ export function ExpensesTable({ expenses, period, periods, onPeriodChange, onMar
                                         )}
                                         <button
                                             type="button"
+                                            disabled={deletingId === e.id}
                                             onClick={() => {
                                                 if (window.confirm("Delete this expense?")) onDelete(e.id);
                                             }}
                                             aria-label={`Delete expense: ${e.description}`}
-                                            className="rounded-xs p-1 text-fg-tertiary transition-colors duration-120 ease-out hover:bg-sunken hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus"
+                                            className="rounded-xs p-1 text-fg-tertiary transition-colors duration-120 ease-out hover:bg-sunken hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-border-focus disabled:opacity-40"
                                         >
                                             <Trash2 className="size-4" />
                                         </button>
