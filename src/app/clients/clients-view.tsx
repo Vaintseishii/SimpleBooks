@@ -200,6 +200,15 @@ export function ClientsView() {
             </label>
           </div>
 
+          {deleteClient.error && (
+            <p
+              role="alert"
+              className="border-t border-border-subtle bg-status-overdue px-6 py-4 text-body-m text-status-overdue-fg"
+            >
+              {deleteClient.error.message}
+            </p>
+          )}
+
           {list.isPending ? (
             <div className="border-t border-border-subtle p-6">
               <SkeletonRows rows={6} />
@@ -259,6 +268,7 @@ export function ClientsView() {
                       className={dangerButton}
                       disabled={deleteClient.isPending}
                       onClick={() => {
+                        deleteClient.reset();
                         if (window.confirm(`Delete ${client.name}?`)) {
                           deleteClient.mutate({ id: client.id });
                         }

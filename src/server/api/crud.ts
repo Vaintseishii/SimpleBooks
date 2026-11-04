@@ -43,6 +43,11 @@ export function createCrudRouter<
   fields: TFields;
   searchFields?: string[];
   orderBy?: Record<string, "asc" | "desc">;
+  /**
+   * Runs before the row is deleted. Throw from here to refuse, e.g. when other
+   * records still reference it and the database would reject the delete.
+   */
+  beforeDelete?: (args: { userId: string; id: string }) => Promise<void>;
 }) {
   const createInput = z.object(config.fields);
   // Zod 4 no longer infers `id` after `.partial().extend()`, so the id is part
@@ -130,6 +135,8 @@ export function createCrudRouter<
     delete: protectedProcedure
       .input(crudIdInput)
       .mutation(async ({ ctx, input }) => {
+        await config.beforeDelete?.({ userId: ctx.userId, id: input.id });
+
         // deleteMany can be scoped by userId in one statement; delete cannot.
         const { count } = await config.delegate.deleteMany({
           where: { id: input.id, userId: ctx.userId },
