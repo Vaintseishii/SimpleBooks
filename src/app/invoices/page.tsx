@@ -198,4 +198,4 @@ function InvoicesPageContent() {
 
 export default function InvoicesPage() {
     return <InvoicesPageContent />;
-}```
+}
