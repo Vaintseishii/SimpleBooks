@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import NextLink from "next/link";
-import { Info, Plus } from "lucide-react";
+import { ChevronDown, Info, Plus, Search } from "lucide-react";
 import { api } from "~/trpc/react";
 import { StatCard } from "~/components/statCard";
 import { SkeletonCard, SkeletonRows } from "~/components/skeleton";
@@ -149,34 +149,41 @@ function InvoicesPageContent() {
             </div>
 
             <div className="flex flex-wrap gap-4 mb-4">
-                <div className="relative">
+                <div className="relative w-full max-w-sm">
+                    <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-tertiary" />
                     <input
                         type="search"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search invoice #, client, project..."
-                        className="h-10 w-full max-w-sm rounded-md border border-border-default bg-sunken pr-3 pl-9 text-body-m text-fg-primary placeholder:text-fg-tertiary focus:border-border-accent focus:outline-none"
+                        placeholder="Search invoices"
+                        className="h-10 w-full rounded-md border border-border-default bg-sunken pr-3 pl-9 text-body-m text-fg-primary placeholder:text-fg-tertiary focus:border-border-accent focus:outline-none"
                     />
                 </div>
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as "ALL" | "DRAFT" | "SENT" | "PAID")}
-                    className="h-10 appearance-none rounded-md border border-border-default bg-surface pr-3 pl-9 text-label-m text-fg-primary transition-colors duration-120 ease-out hover:bg-sunken focus-visible:outline-2 focus-visible:outline-border-focus"
-                >
-                    <option value="ALL">All statuses</option>
-                    <option value="DRAFT">Draft</option>
-                    <option value="SENT">Sent</option>
-                    <option value="PAID">Paid</option>
-                </select>
-                <select
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value as "all" | "thisMonth" | "lastMonth")}
-                    className="h-10 appearance-none rounded-md border border-border-default bg-surface pr-3 pl-9 text-label-m text-fg-primary transition-colors duration-120 ease-out hover:bg-sunken focus-visible:outline-2 focus-visible:outline-border-focus"
-                >
-                    <option value="all">All dates</option>
-                    <option value="thisMonth">Issued this month</option>
-                    <option value="lastMonth">Issued last month</option>
-                </select>
+                <div className="relative">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value as "ALL" | "DRAFT" | "SENT" | "PAID")}
+                        className="h-10 appearance-none rounded-md border border-border-default bg-surface pr-9 pl-3 text-label-m text-fg-primary transition-colors duration-120 ease-out hover:bg-sunken focus-visible:outline-2 focus-visible:outline-border-focus"
+                    >
+                        <option value="ALL">All statuses</option>
+                        <option value="DRAFT">Draft</option>
+                        <option value="SENT">Sent</option>
+                        <option value="PAID">Paid</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-tertiary" />
+                </div>
+                <div className="relative">
+                    <select
+                        value={dateFilter}
+                        onChange={(e) => setDateFilter(e.target.value as "all" | "thisMonth" | "lastMonth")}
+                        className="h-10 appearance-none rounded-md border border-border-default bg-surface pr-9 pl-3 text-label-m text-fg-primary transition-colors duration-120 ease-out hover:bg-sunken focus-visible:outline-2 focus-visible:outline-border-focus"
+                    >
+                        <option value="all">All dates</option>
+                        <option value="thisMonth">Issued this month</option>
+                        <option value="lastMonth">Issued last month</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-tertiary" />
+                </div>
             </div>
 
             <InvoicesTable invoices={invoices} today={today} />
