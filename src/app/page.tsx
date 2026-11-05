@@ -13,7 +13,7 @@ export default async function Overview() {
         <div className="flex flex-col gap-8">
             <div className="flex items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-display-hero">Welcome back{firstName ? `, ${firstName}` : ""}</h1>
+                    <h1 className="text-display-hero">Welcome{firstName ? `, ${firstName}` : ""}</h1>
                     <p className="mt-2 max-w-[65ch] text-body-l text-fg-secondary">
                         Here is how your business is doing.
                     </p>
