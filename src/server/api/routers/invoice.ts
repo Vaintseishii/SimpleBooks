@@ -335,6 +335,94 @@ export const invoiceRouter = createTRPCRouter({
       return payment;
     }),
 
+  // Settle an invoice in full: record the remaining balance as a payment and
+  // flip the status to PAID. Idempotent for invoices that are already paid.
+  markPaid: protectedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const invoice = await db.invoice.findFirst({
+        where: { id: input.id, userId: ctx.userId },
+        include: { payments: true },
+      });
+
+      if (!invoice) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const totalPaid = invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+      const remaining = Number(invoice.total) - totalPaid;
+
+      await db.$transaction(async (tx) => {
+        if (remaining > 0.01) {
+          await tx.payment.create({
+            data: {
+              invoiceId: invoice.id,
+              userId: ctx.userId,
+              amount: remaining,
+              date: new Date(),
+            },
+          });
+        }
+
+        await tx.invoice.update({
+          where: { id: invoice.id },
+          data: { status: "PAID", paidAt: new Date() },
+        });
+      });
+
+      return { id: invoice.id };
+    }),
+
+  // Bulk variant of markPaid for the invoices list's multi-select.
+  markPaidMany: protectedProcedure
+    .input(z.object({ ids: z.array(z.string().min(1)).min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const invoices = await db.invoice.findMany({
+        where: { id: { in: input.ids }, userId: ctx.userId },
+        include: { payments: true },
+      });
+
+      const now = new Date();
+
+      await db.$transaction(async (tx) => {
+        for (const invoice of invoices) {
+          if (invoice.status === "PAID") continue;
+
+          const totalPaid = invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+          const remaining = Number(invoice.total) - totalPaid;
+
+          if (remaining > 0.01) {
+            await tx.payment.create({
+              data: {
+                invoiceId: invoice.id,
+                userId: ctx.userId,
+                amount: remaining,
+                date: now,
+              },
+            });
+          }
+
+          await tx.invoice.update({
+            where: { id: invoice.id },
+            data: { status: "PAID", paidAt: now },
+          });
+        }
+      });
+
+      return { count: invoices.length };
+    }),
+
+  // Bulk delete for the invoices list's multi-select.
+  deleteMany: protectedProcedure
+    .input(z.object({ ids: z.array(z.string().min(1)).min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const { count } = await db.invoice.deleteMany({
+        where: { id: { in: input.ids }, userId: ctx.userId },
+      });
+
+      return { count };
+    }),
+
   // Get next invoice number. The numeric part is compared as a number: ordering
   // by `number` as text would rank "INV-9999" above "INV-10000".
   nextNumber: protectedProcedure.query(async ({ ctx }) => {
