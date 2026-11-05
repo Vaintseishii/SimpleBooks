@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
-import { ArrowDownWideNarrow, CalendarDays, ChevronDown, Ellipsis, Eye, Pencil, Search, Trash2 } from "lucide-react";
+import { ArrowDownWideNarrow, CalendarDays, CheckCircle2, ChevronDown, Ellipsis, Eye, Pencil, Search, Trash2 } from "lucide-react";
 import { api } from "~/trpc/react";
+import { dangerButton, secondaryButton } from "./buttonStyles";
 import { StatusPill, type DisplayStatus } from "./statusPill";
 import { formatMoney } from "~/lib/format";
 import { getDisplayStatus, sameMonth, shortDate } from "~/lib/invoiceStatus";
@@ -57,6 +58,33 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
             await utils.invoices.list.invalidate();
         },
     });
+
+    const markPaid = api.invoices.markPaid.useMutation({
+        onSuccess: async (_data, variables) => {
+            await Promise.all([
+                utils.invoices.list.invalidate(),
+                utils.invoices.byId.invalidate({ id: variables.id }),
+                utils.reports.profitAndLoss.invalidate(),
+            ]);
+        },
+    });
+
+    const bulkMarkPaid = api.invoices.markPaidMany.useMutation({
+        onSuccess: async () => {
+            setSelected(new Set());
+            await Promise.all([utils.invoices.list.invalidate(), utils.reports.profitAndLoss.invalidate()]);
+        },
+    });
+
+    const bulkDelete = api.invoices.deleteMany.useMutation({
+        onSuccess: async () => {
+            setSelected(new Set());
+            await utils.invoices.list.invalidate();
+        },
+    });
+
+    const actionError =
+        deleteInvoice.error ?? markPaid.error ?? bulkMarkPaid.error ?? bulkDelete.error;
 
     // Escape, scroll, or resize closes the row menu.
     useEffect(() => {
@@ -279,6 +307,23 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                                             <NextLink href={`/invoices/${inv.id}/edit`} role="menuitem" className={menuItem} onClick={() => setMenu(null)}>
                                                 <Pencil className="size-4" /> Edit invoice
                                             </NextLink>
+                                            {inv.status !== "PAID" && (
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    disabled={markPaid.isPending}
+                                                    onClick={() => {
+                                                        setMenu(null);
+                                                        markPaid.reset();
+                                                        if (window.confirm(`Mark ${inv.number} as paid in full?`)) {
+                                                            markPaid.mutate({ id: inv.id });
+                                                        }
+                                                    }}
+                                                    className={`${menuItem} disabled:opacity-60`}
+                                                >
+                                                    <CheckCircle2 className="size-4" /> Mark as paid
+                                                </button>
+                                            )}
                                             <button
                                                 type="button"
                                                 role="menuitem"
@@ -310,18 +355,50 @@ export function InvoicesTable({ invoices, today }: InvoicesTableProps) {
                 </tbody>
             </table>
 
-            <div className="flex items-center justify-between border-t border-border-subtle px-6 py-4 text-body-m text-fg-secondary">
+            <div className="flex items-center justify-between gap-4 border-t border-border-subtle px-6 py-4 text-body-m text-fg-secondary">
                 <span>
                     {visible.length === rows.length
                         ? `Showing all ${rows.length} invoices`
                         : `Showing ${visible.length} of ${rows.length} invoices`}
                 </span>
-                {selected.size > 0 && <span className="text-fg-primary font-medium">{selected.size} selected</span>}
+                {selected.size > 0 ? (
+                    <div className="flex items-center gap-3">
+                        <span className="text-fg-primary font-medium">{selected.size} selected</span>
+                        <button
+                            type="button"
+                            className={secondaryButton}
+                            disabled={bulkMarkPaid.isPending || bulkDelete.isPending}
+                            onClick={() => {
+                                const ids = [...selected];
+                                bulkMarkPaid.reset();
+                                if (window.confirm(`Mark ${ids.length} ${ids.length === 1 ? "invoice" : "invoices"} as paid in full?`)) {
+                                    bulkMarkPaid.mutate({ ids });
+                                }
+                            }}
+                        >
+                            <CheckCircle2 className="size-4" /> Mark as paid
+                        </button>
+                        <button
+                            type="button"
+                            className={dangerButton}
+                            disabled={bulkMarkPaid.isPending || bulkDelete.isPending}
+                            onClick={() => {
+                                const ids = [...selected];
+                                bulkDelete.reset();
+                                if (window.confirm(`Delete ${ids.length} ${ids.length === 1 ? "invoice" : "invoices"}? This cannot be undone.`)) {
+                                    bulkDelete.mutate({ ids });
+                                }
+                            }}
+                        >
+                            <Trash2 className="size-4" /> Delete
+                        </button>
+                    </div>
+                ) : null}
             </div>
 
-            {deleteInvoice.error && (
+            {actionError && (
                 <p role="alert" className="border-t border-border-subtle bg-status-overdue px-6 py-4 text-body-m text-status-overdue-fg">
-                    {deleteInvoice.error.message}
+                    {actionError.message}
                 </p>
             )}
         </div>
