@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { StatCard } from "./statCard";
 import { SkeletonCard } from "./skeleton";
+import { CategoryBreakdown } from "./categoryBreakdown";
+import { BalanceSummary } from "./balanceSummary";
 import { formatMoney } from "~/lib/format";
 import { useWorkspaceCurrency } from "~/lib/useWorkspaceCurrency";
 import { getDisplayStatus } from "~/lib/invoiceStatus";
 import { plural } from "~/lib/receivables";
+import { inPeriod, monthKey, periodLabel, sumAmounts } from "~/lib/expenseSummary";
+import type { Expense } from "~/lib/sampleExpenses";
 import { api } from "~/trpc/react";
 
 // The spec asks for net income over "This Month" and "Year-to-Date"
@@ -24,6 +28,7 @@ export function OverviewStats() {
     const [period, setPeriod] = useState<Period>("thisMonth");
     const { data: pnl, isPending: pnlPending } = api.reports.profitAndLoss.useQuery({ period });
     const { data: sent, isPending: sentPending } = api.invoices.list.useQuery({ status: "SENT", take: 100 }); // sent = not paid yet
+    const { data: expenseData, isPending: expensesPending } = api.expenses.list.useQuery({ take: 100 });
     const pending = pnlPending || sentPending;
 
     const today = new Date();
@@ -41,6 +46,22 @@ export function OverviewStats() {
         ? `Month to date · ${shortMonth} 1–${today.getDate()}`
         : `Year to date · Jan 1–${shortMonth} ${today.getDate()}`;
     const when = isMonth ? "this month" : "this year";
+
+    // Same shape the Expenses page passes to the category chart
+    const expenses: Expense[] = (expenseData?.expenses ?? []).map((e) => ({
+        id: e.id,
+        vendor: { id: e.vendorId, name: e.vendor?.name ?? "Unknown vendor" },
+        description: e.description,
+        category: e.category,
+        currency: e.currency,
+        amount: e.amount,
+        date: e.date,
+        status: e.status === "UNPAID" ? "UNPAID" : "PAID",
+        notes: e.notes,
+    }));
+    const expensePeriod = isMonth ? monthKey(today) : "ytd";
+    const inRange = expenses.filter((e) => inPeriod(e.date, expensePeriod, today));
+    const unpaidBills = expenses.filter((e) => e.status === "UNPAID");
 
     return (
         <div className="flex flex-col gap-6">
@@ -112,6 +133,28 @@ export function OverviewStats() {
                     </>
                 )}
             </div>
+
+            {pending || expensesPending ? (
+                <>
+                    <SkeletonCard className="h-40" />
+                    <SkeletonCard className="h-56" />
+                </>
+            ) : (
+                <>
+                    <CategoryBreakdown
+                        expenses={inRange}
+                        periodLabel={periodLabel(expensePeriod, today)}
+                        currency={currency}
+                    />
+                    <BalanceSummary
+                        pendingIncome={outstanding}
+                        invoiceCount={unpaid.length}
+                        unpaidBills={sumAmounts(unpaidBills)}
+                        billCount={unpaidBills.length}
+                        currency={currency}
+                    />
+                </>
+            )}
         </div>
     );
 }
