@@ -103,7 +103,11 @@ export function OverviewStats() {
                             label="Outstanding"
                             value={outstanding}
                             currency={currency}
-                            note={`${formatMoney(overdueTotal, currency)} is overdue · ${plural(overdue.length, "invoice")}`}
+                            note={
+                                overdue.length > 0
+                                    ? `${formatMoney(overdueTotal, currency)} is overdue · ${plural(unpaid.length, "invoice")}`
+                                    : `${plural(unpaid.length, "invoice")} awaiting payment`
+                            }
                         />
                     </>
                 )}
